@@ -73,7 +73,7 @@ func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness,
 	angleB := -math.Atan2(float64(posB.ToF32().Y-ctrl.Y), float64(posB.ToF32().X-ctrl.X))
 
 	// Draw the arc
-	DrawArc(ops, MoveAlongAngle(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngle(posB, angleB+math.Pi, arrowSize*.5), col, thickness, roundness)
+	DrawArc(ops, MoveAlongAngleGlob(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngleGlob(posB, angleB+math.Pi, arrowSize*.5), col, thickness, roundness)
 
 	// Draw arrow at posA
 	DrawArrow(ops, posA, angleA, arrowSize, col, windowSize)
@@ -116,7 +116,7 @@ func DrawArrowLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness
 	angle := GetAngleGlob(posA, posB)
 	arrowSize := float64(thickness * 5)
 
-	DrawLine(ops, posA, MoveAlongAngle(posB, angle+math.Pi, arrowSize*.5), col, thickness)
+	DrawLine(ops, posA, MoveAlongAngleGlob(posB, angle+math.Pi, arrowSize*.5), col, thickness)
 	DrawArrow(ops, posB, angle, arrowSize, col, windowSize)
 }
 
@@ -137,8 +137,8 @@ func DrawLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness floa
 func DrawArrow(ops *op.Ops, basePos GlobalPos, angle float64, arrowSize float64, col color.NRGBA, windowSize GlobalDim) {
 	var triangle clip.Path
 	triangle.Begin(ops)
-	triangle.MoveTo(MoveAlongAngle(basePos, angle+math.Pi+math.Pi/7.0, arrowSize).ToF32())
-	triangle.LineTo(MoveAlongAngle(basePos, angle+math.Pi-math.Pi/7.0, arrowSize).ToF32())
+	triangle.MoveTo(MoveAlongAngleGlob(basePos, angle+math.Pi+math.Pi/7.0, arrowSize).ToF32())
+	triangle.LineTo(MoveAlongAngleGlob(basePos, angle+math.Pi-math.Pi/7.0, arrowSize).ToF32())
 	triangle.LineTo(basePos.ToF32())
 	triangle.Close()
 

@@ -75,7 +75,8 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 	// draw observed nodes
 	// must handle observed before latent to establish positions of connection ends
 	for _, n := range m.Nodes {
-		if n.Class == model.OBSERVED {
+		switch n.Class {
+		case model.OBSERVED:
 			// handle connections
 			for e := 0; e < 4; e++ {
 				connections := n.EdgeConnections[e]
@@ -125,7 +126,7 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 				}
 			}
 
-			// draw the node iteself
+			// draw the node itself
 			utils.DrawRect(
 				ops,
 				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
@@ -133,10 +134,8 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 				n.Col,
 				n.Thickness*ec.scaleFactor,
 			)
-		}
 
-		if n.Class == model.LATENT {
-			// draw the node iteself
+		case model.LATENT:
 			utils.DrawEllipse(
 				ops,
 				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
@@ -144,10 +143,20 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 				n.Col,
 				n.Thickness*ec.scaleFactor,
 			)
+
+		case model.INTERCEPT:
+			//TODO: Handle drawing intercept
 		}
 	}
 
 	for _, c := range m.Connections {
+		if c.Origin.Class == model.LATENT {
+			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, c.Angle, c.Origin.Dim.W/2.0)
+		}
+		if c.Destination.Class == model.LATENT {
+			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, c.Angle+math.Pi, c.Destination.Dim.W/2.0)
+		}
+
 		switch c.Type {
 		case model.REGRESSION:
 			utils.DrawArrowLine(
