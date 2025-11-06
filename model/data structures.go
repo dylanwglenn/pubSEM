@@ -20,23 +20,27 @@ const (
 )
 
 type Node struct {
-	Class       ParamType
-	Pos         utils.LocalPos
-	Dim         utils.LocalDim
-	Col         color.NRGBA
-	Text        string
-	Thickness   float32
-	UserDefined bool
+	Class           ParamType
+	Pos             utils.LocalPos
+	Dim             utils.LocalDim
+	Col             color.NRGBA
+	Text            string
+	Thickness       float32
+	UserDefined     bool
+	EdgeConnections [4][]*Connection // only applicable for observed (rectangular) nodes
 }
 
 type Connection struct {
-	Origin      *Node
-	Destination *Node
-	Col         color.NRGBA
-	Thickness   float32
-	Type        ConnectionType
-	Text        string
-	UserDefined bool
+	Origin         *Node
+	Destination    *Node
+	OriginPos      utils.LocalPos
+	DestinationPos utils.LocalPos
+	Angle          float64
+	Col            color.NRGBA
+	Thickness      float32
+	Type           ConnectionType
+	Text           string
+	UserDefined    bool
 }
 
 type Model struct {

@@ -19,6 +19,10 @@ type GlobalPos struct {
 	X, Y int
 }
 
+func DistLocal(a, b LocalPos) float32 {
+	return float32(math.Sqrt(math.Pow(float64(b.X-a.X), 2) + math.Pow(float64(b.Y-a.Y), 2)))
+}
+
 // LocalDim methods
 
 func (lDim LocalDim) Round() GlobalDim {
@@ -65,6 +69,10 @@ func (lPos LocalPos) AddDim(x LocalDim) LocalPos {
 
 func (lPos LocalPos) Sub(x LocalPos) LocalPos {
 	return LocalPos{X: lPos.X - x.X, Y: lPos.Y - x.Y}
+}
+
+func (lPos LocalPos) SubDim(x LocalDim) LocalPos {
+	return LocalPos{X: lPos.X - x.W, Y: lPos.Y - x.H}
 }
 
 func (lPos LocalPos) Mul(f float32) LocalPos {

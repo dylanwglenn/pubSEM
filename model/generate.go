@@ -17,7 +17,7 @@ func InitTestModel() *Model {
 	}
 
 	nodeB := &Node{
-		Class:       LATENT,
+		Class:       OBSERVED,
 		Pos:         utils.LocalPos{500, 200},
 		Dim:         utils.LocalDim{70, 50},
 		Col:         color.NRGBA{0, 0, 255, 255},
@@ -25,7 +25,16 @@ func InitTestModel() *Model {
 		UserDefined: false,
 	}
 
-	connection := &Connection{
+	nodeC := &Node{
+		Class:       OBSERVED,
+		Pos:         utils.LocalPos{-50, 100},
+		Dim:         utils.LocalDim{70, 50},
+		Col:         color.NRGBA{0, 0, 255, 255},
+		Thickness:   2.0,
+		UserDefined: false,
+	}
+
+	connectionA := &Connection{
 		Origin:      nodeA,
 		Destination: nodeB,
 		Col:         color.NRGBA{0, 0, 0, 255},
@@ -34,8 +43,17 @@ func InitTestModel() *Model {
 		UserDefined: true,
 	}
 
+	connectionB := &Connection{
+		Origin:      nodeA,
+		Destination: nodeC,
+		Col:         color.NRGBA{0, 0, 0, 255},
+		Thickness:   3.0,
+		Type:        REGRESSION,
+		UserDefined: true,
+	}
+
 	return &Model{
-		Nodes:       []*Node{nodeA, nodeB},
-		Connections: []*Connection{connection},
+		Nodes:       []*Node{nodeA, nodeB, nodeC},
+		Connections: []*Connection{connectionA, connectionB},
 	}
 }
