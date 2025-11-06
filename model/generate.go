@@ -48,7 +48,7 @@ func InitTestModel() *Model {
 		Destination: nodeA,
 		Col:         color.NRGBA{0, 0, 0, 255},
 		Thickness:   2.0,
-		Type:        REGRESSION,
+		Type:        COVARIANCE,
 		UserDefined: true,
 	}
 

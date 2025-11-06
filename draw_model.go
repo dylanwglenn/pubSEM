@@ -42,7 +42,14 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 	// the shortest
 
 	for _, c := range m.Connections {
-		c.Angle = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
+		switch c.Type {
+		case model.REGRESSION:
+			c.Angle = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
+		case model.COVARIANCE:
+			ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), roundness)
+			angle := -math.Atan2(float64(ctrl.Y-c.Origin.Pos.ToF32().Y), float64(ctrl.X-c.Origin.Pos.ToF32().X))
+			c.Angle = utils.NormalizeAngle(angle)
+		}
 
 		if c.Origin.Class == model.OBSERVED {
 			edge := AngleToEdge(c.Angle)
@@ -50,7 +57,16 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 		}
 
 		if c.Destination.Class == model.OBSERVED {
-			angle := utils.NormalizeAngle(c.Angle + math.Pi)
+			var angle float64
+			switch c.Type {
+			case model.REGRESSION:
+				angle = utils.NormalizeAngle(c.Angle + math.Pi)
+			case model.COVARIANCE:
+				ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), roundness)
+				angle = -math.Atan2(float64(ctrl.Y-c.Destination.Pos.ToF32().Y), float64(ctrl.X-c.Destination.Pos.ToF32().X))
+				angle = utils.NormalizeAngle(angle)
+			}
+
 			edge := AngleToEdge(angle)
 			c.Destination.EdgeConnections[edge] = append(c.Destination.EdgeConnections[edge], c)
 		}
@@ -132,13 +148,24 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 	}
 
 	for _, c := range m.Connections {
-		if c.Type == model.REGRESSION {
+		switch c.Type {
+		case model.REGRESSION:
 			utils.DrawArrowLine(
 				ops,
 				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				c.Col,
 				c.Thickness*ec.scaleFactor,
+				ec.windowSize,
+			)
+		case model.COVARIANCE:
+			utils.DrawArrowArc(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				roundness,
 				ec.windowSize,
 			)
 		}

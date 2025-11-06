@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math"
 
+	"gioui.org/f32"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -59,31 +60,35 @@ func DrawEllipse(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thi
 	)
 }
 
-func DrawArrowLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32, windowSize GlobalDim) {
-	angle := GetAngleGlob(posA, posB)
+func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roundness float32, windowSize GlobalDim) {
+	// Calculate control point for tangent angles
+	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness)
+
 	arrowSize := float64(thickness * 5)
 
-	DrawLine(ops, posA, MoveAlongAngle(posB, angle+math.Pi, arrowSize*.5), col, thickness)
+	// Angle at start: from posA toward control point
+	angleA := -math.Atan2(float64(ctrl.Y-posA.ToF32().Y), float64(ctrl.X-posA.ToF32().X)) + math.Pi
 
-	var triangle clip.Path
-	triangle.Begin(ops)
-	triangle.MoveTo(MoveAlongAngle(posB, angle+math.Pi+math.Pi/7.0, arrowSize).ToF32())
-	triangle.LineTo(MoveAlongAngle(posB, angle+math.Pi-math.Pi/7.0, arrowSize).ToF32())
-	triangle.LineTo(posB.ToF32())
-	triangle.Close()
+	// Angle at end: from control point toward posB
+	angleB := -math.Atan2(float64(posB.ToF32().Y-ctrl.Y), float64(posB.ToF32().X-ctrl.X))
 
-	defer clip.Outline{Path: triangle.End()}.Op().Push(ops).Pop()
-	defer clip.Rect{Max: image.Pt(windowSize.W, windowSize.H)}.Push(ops).Pop()
-	paint.ColorOp{Color: col}.Add(ops)
-	paint.PaintOp{}.Add(ops)
+	// Draw the arc
+	DrawArc(ops, MoveAlongAngle(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngle(posB, angleB+math.Pi, arrowSize*.5), col, thickness, roundness)
+
+	// Draw arrow at posA
+	DrawArrow(ops, posA, angleA, arrowSize, col, windowSize)
+
+	// Draw arrow at posB
+	DrawArrow(ops, posB, angleB, arrowSize, col, windowSize)
 }
 
-func DrawLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32) {
+func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roundness float32) {
+	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness)
+
 	var path clip.Path
 	path.Begin(ops)
 	path.MoveTo(posA.ToF32())
-	path.LineTo(posB.ToF32())
-	path.Close()
+	path.QuadTo(ctrl, posB.ToF32())
 
 	paint.FillShape(ops, col,
 		clip.Stroke{
@@ -91,4 +96,54 @@ func DrawLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness floa
 			Width: thickness,
 		}.Op(),
 	)
+}
+
+func GetCtrlPoint(posA, posB f32.Point, roundness float32) f32.Point {
+	mid := posA.Add(posB).Div(2)
+
+	dx := float32(posB.X - posA.X)
+	dy := float32(posB.Y - posA.Y)
+
+	ctrl := f32.Point{
+		X: mid.X - dy*roundness,
+		Y: mid.Y + dx*roundness,
+	}
+
+	return ctrl
+}
+
+func DrawArrowLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32, windowSize GlobalDim) {
+	angle := GetAngleGlob(posA, posB)
+	arrowSize := float64(thickness * 5)
+
+	DrawLine(ops, posA, MoveAlongAngle(posB, angle+math.Pi, arrowSize*.5), col, thickness)
+	DrawArrow(ops, posB, angle, arrowSize, col, windowSize)
+}
+
+func DrawLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32) {
+	var path clip.Path
+	path.Begin(ops)
+	path.MoveTo(posA.ToF32())
+	path.LineTo(posB.ToF32())
+
+	paint.FillShape(ops, col,
+		clip.Stroke{
+			Path:  path.End(),
+			Width: thickness,
+		}.Op(),
+	)
+}
+
+func DrawArrow(ops *op.Ops, basePos GlobalPos, angle float64, arrowSize float64, col color.NRGBA, windowSize GlobalDim) {
+	var triangle clip.Path
+	triangle.Begin(ops)
+	triangle.MoveTo(MoveAlongAngle(basePos, angle+math.Pi+math.Pi/7.0, arrowSize).ToF32())
+	triangle.LineTo(MoveAlongAngle(basePos, angle+math.Pi-math.Pi/7.0, arrowSize).ToF32())
+	triangle.LineTo(basePos.ToF32())
+	triangle.Close()
+
+	defer clip.Outline{Path: triangle.End()}.Op().Push(ops).Pop()
+	defer clip.Rect{Max: image.Pt(windowSize.W, windowSize.H)}.Push(ops).Pop()
+	paint.ColorOp{Color: col}.Add(ops)
+	paint.PaintOp{}.Add(ops)
 }

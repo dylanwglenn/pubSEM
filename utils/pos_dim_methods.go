@@ -87,6 +87,10 @@ func (lPos LocalPos) ToGlobal(scaleFactor float32, viewportCenter LocalPos, wind
 	return lPos.Add(viewportCenter).Mul(scaleFactor).Round().AddDim(windowSize.Div(2))
 }
 
+func (lPos LocalPos) ToF32() f32.Point {
+	return f32.Point{X: lPos.X, Y: lPos.Y}
+}
+
 func ToLocalPos(pt f32.Point) LocalPos {
 	return LocalPos{X: pt.X, Y: pt.Y}
 }

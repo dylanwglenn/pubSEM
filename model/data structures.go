@@ -10,6 +10,7 @@ type ParamType int
 const (
 	OBSERVED ParamType = iota
 	LATENT
+	INTERCEPT //TODO: add support for intercepts (triangle nodes)
 )
 
 type ConnectionType int

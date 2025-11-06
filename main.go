@@ -17,6 +17,7 @@ import (
 const (
 	startingWidth  int = 1200
 	startingHeight int = 800
+	roundness          = .3
 )
 
 // EditContext contains the current editor state
