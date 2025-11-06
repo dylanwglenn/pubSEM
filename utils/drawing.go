@@ -3,6 +3,7 @@ package utils
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"gioui.org/op"
 	"gioui.org/op/clip"
@@ -56,6 +57,25 @@ func DrawEllipse(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thi
 			Width: thickness,
 		}.Op(),
 	)
+}
+
+func DrawArrowLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32, windowSize GlobalDim) {
+	angle := GetAngleGlob(posA, posB)
+	arrowSize := float64(thickness * 5)
+
+	DrawLine(ops, posA, MoveAlongAngle(posB, angle+math.Pi, arrowSize*.5), col, thickness)
+
+	var triangle clip.Path
+	triangle.Begin(ops)
+	triangle.MoveTo(MoveAlongAngle(posB, angle+math.Pi+math.Pi/7.0, arrowSize).ToF32())
+	triangle.LineTo(MoveAlongAngle(posB, angle+math.Pi-math.Pi/7.0, arrowSize).ToF32())
+	triangle.LineTo(posB.ToF32())
+	triangle.Close()
+
+	defer clip.Outline{Path: triangle.End()}.Op().Push(ops).Pop()
+	defer clip.Rect{Max: image.Pt(windowSize.W, windowSize.H)}.Push(ops).Pop()
+	paint.ColorOp{Color: col}.Add(ops)
+	paint.PaintOp{}.Add(ops)
 }
 
 func DrawLine(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness float32) {

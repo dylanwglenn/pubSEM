@@ -42,7 +42,7 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 	// the shortest
 
 	for _, c := range m.Connections {
-		c.Angle = utils.GetAngle(c.Origin.Pos, c.Destination.Pos)
+		c.Angle = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
 
 		if c.Origin.Class == model.OBSERVED {
 			edge := AngleToEdge(c.Angle)
@@ -80,9 +80,9 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 				}
 
 				// do the sorting
-				// edge 1 is a special case, since the angle values wrap around from 2Pi to 0
+				// edge 3 is a special case, since the angle values wrap around from 2Pi to 0
 				switch {
-				case e == 1:
+				case e == 3:
 					for i := range angles {
 						if angles[i] < math.Pi {
 							angles[i] += 2 * math.Pi
@@ -132,13 +132,16 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 	}
 
 	for _, c := range m.Connections {
-		utils.DrawLine(
-			ops,
-			c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-			c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-			c.Col,
-			c.Thickness*ec.scaleFactor,
-		)
+		if c.Type == model.REGRESSION {
+			utils.DrawArrowLine(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				ec.windowSize,
+			)
+		}
 	}
 }
 
@@ -174,7 +177,7 @@ func SubdivideNodeEdge(n *model.Node, edge, numPoints int) []utils.LocalPos {
 		step := n.Dim.W / float32(numPoints+1)
 		for i := 0; i < numPoints; i++ {
 			res[i] = utils.LocalPos{
-				X: (n.Pos.X - n.Dim.W/2.0) + step*float32(i+1),
+				X: (n.Pos.X + n.Dim.W/2.0) - step*float32(i+1),
 				Y: n.Pos.Y - n.Dim.H/2.0,
 			}
 		}
@@ -191,7 +194,7 @@ func SubdivideNodeEdge(n *model.Node, edge, numPoints int) []utils.LocalPos {
 		for i := 0; i < numPoints; i++ {
 			res[i] = utils.LocalPos{
 				X: n.Pos.X + n.Dim.W/2.0,
-				Y: (n.Pos.Y - n.Dim.H/2.0) + step*float32(i+1),
+				Y: (n.Pos.Y + n.Dim.H/2.0) - step*float32(i+1),
 			}
 		}
 	case edge == 3:

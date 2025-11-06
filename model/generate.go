@@ -38,16 +38,16 @@ func InitTestModel() *Model {
 		Origin:      nodeA,
 		Destination: nodeB,
 		Col:         color.NRGBA{0, 0, 0, 255},
-		Thickness:   3.0,
+		Thickness:   2.0,
 		Type:        REGRESSION,
 		UserDefined: true,
 	}
 
 	connectionB := &Connection{
-		Origin:      nodeA,
-		Destination: nodeC,
+		Origin:      nodeC,
+		Destination: nodeA,
 		Col:         color.NRGBA{0, 0, 0, 255},
-		Thickness:   3.0,
+		Thickness:   2.0,
 		Type:        REGRESSION,
 		UserDefined: true,
 	}
