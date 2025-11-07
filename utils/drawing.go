@@ -101,8 +101,8 @@ func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roun
 func GetCtrlPoint(posA, posB f32.Point, roundness float32, curvature bool) f32.Point {
 	mid := posA.Add(posB).Div(2)
 
-	dx := float32(posB.X - posA.X)
-	dy := float32(posB.Y - posA.Y)
+	dx := posB.X - posA.X
+	dy := posB.Y - posA.Y
 
 	if curvature {
 		return f32.Point{

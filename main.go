@@ -134,6 +134,8 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 						if utils.WithinEllipse(evt.Position.Round(), rect) {
 							ec.selectedNode = n
 						}
+					case model.INTERCEPT:
+						//todo: handle intercept
 					}
 				}
 
@@ -170,7 +172,6 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 	// Register for pan events on the entire window
 	event.Op(ops, rightClickTag)
 
-	// Process pan events
 	for {
 		ev, ok := gtx.Event(pointer.Filter{
 			Target: rightClickTag,
@@ -197,6 +198,7 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 						break
 					}
 				}
+			default:
 			}
 		}
 	}

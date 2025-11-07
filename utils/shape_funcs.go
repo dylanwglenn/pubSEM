@@ -53,8 +53,8 @@ func WithinLine(pos image.Point, a, b GlobalPos, tolerance float32) bool {
 
 	// Closest point on segment
 	closest := f32.Point{
-		X: float32(a.X) + t*float32(ab.X),
-		Y: float32(a.Y) + t*float32(ab.Y),
+		X: float32(a.X) + t*ab.X,
+		Y: float32(a.Y) + t*ab.Y,
 	}
 
 	// Distance from p to nearest point
