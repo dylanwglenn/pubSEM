@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"image"
 	"math"
 
 	"gioui.org/f32"
@@ -137,4 +138,8 @@ func (gPos GlobalPos) Div(i int) GlobalPos {
 
 func (gPos GlobalPos) ToF32() f32.Point {
 	return f32.Point{X: float32(gPos.X), Y: float32(gPos.Y)}
+}
+
+func ToGlobalPos(pt image.Point) GlobalPos {
+	return GlobalPos{X: pt.X, Y: pt.Y}
 }

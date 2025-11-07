@@ -41,6 +41,7 @@ type Connection struct {
 	Thickness      float32
 	Type           ConnectionType
 	Text           string
+	Curvature      bool // only applicable for covariance (curved) connections
 	UserDefined    bool
 }
 

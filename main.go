@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"log"
 	"main/model"
 	"main/utils"
@@ -20,16 +21,22 @@ const (
 	roundness          = .3
 )
 
+var (
+	leftClickTag  = new(int)
+	rightClickTag = new(int)
+)
+
 // EditContext contains the current editor state
 type EditContext struct {
-	viewportCenter utils.LocalPos
-	windowSize     utils.GlobalDim
-	scaleFactor    float32
-	snapGridSize   float32
-	nodeDragOffset utils.LocalPos // The offset of the cursor from the center of a node when clicking
-	panClickPos    utils.LocalPos
-	panOffset      utils.LocalPos
-	selectedNode   *model.Node
+	viewportCenter     utils.LocalPos
+	windowSize         utils.GlobalDim
+	scaleFactor        float32
+	snapGridSize       float32
+	nodeDragOffset     utils.LocalPos // The offset of the cursor from the center of a node when clicking
+	panClickPos        utils.LocalPos
+	panOffset          utils.LocalPos
+	selectedNode       *model.Node
+	selectedConnection *model.Connection
 }
 
 func main() {
@@ -69,6 +76,8 @@ func loop(w *app.Window, m *model.Model, ec *EditContext) error {
 			// if not clicking a node, panning is available
 			LeftClick(ops, gtx, m, ec)
 
+			RightClick(ops, gtx, m, ec)
+
 			// draw the model
 			DrawModel(ops, m, ec)
 
@@ -84,12 +93,12 @@ func loop(w *app.Window, m *model.Model, ec *EditContext) error {
 
 func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
 	// Register for pan events on the entire window
-	event.Op(ops, ops)
+	event.Op(ops, leftClickTag)
 
 	// Process pan events
 	for {
 		ev, ok := gtx.Event(pointer.Filter{
-			Target: ops,
+			Target: leftClickTag,
 			Kinds:  pointer.Press | pointer.Drag | pointer.Release,
 		})
 		if !ok {
@@ -157,6 +166,42 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	}
 }
 
+func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+	// Register for pan events on the entire window
+	event.Op(ops, rightClickTag)
+
+	// Process pan events
+	for {
+		ev, ok := gtx.Event(pointer.Filter{
+			Target: rightClickTag,
+			Kinds:  pointer.Press,
+		})
+		if !ok {
+			break
+		}
+
+		switch evt := ev.(type) {
+		case pointer.Event:
+			switch evt.Kind {
+			case pointer.Press:
+				// Only respond to right mouse button
+				if evt.Buttons != pointer.ButtonSecondary {
+					continue
+				}
+
+				for _, c := range m.Connections {
+					tolerance := float32(5)
+					samples := 10
+					if WithinConnection(evt.Position.Round(), c, ec, tolerance, samples) {
+						println("YAY")
+						break
+					}
+				}
+			}
+		}
+	}
+}
+
 func Scroll(ops *op.Ops, gtx layout.Context, ec *EditContext) {
 	// Register for scroll events on the entire window
 	event.Op(ops, ops)
@@ -195,4 +240,17 @@ func InitEditContext() *EditContext {
 	ec.scaleFactor = 1.0
 	ec.snapGridSize = 20.0
 	return ec
+}
+
+func WithinConnection(pos image.Point, c *model.Connection, ec *EditContext, tolerance float32, samples int) bool {
+	posA := c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize)
+	posB := c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize)
+
+	// Add thickness/2 to tolerance for better hit detection
+	hitRadius := tolerance + (c.Thickness*ec.scaleFactor)/2
+
+	if c.Type == model.COVARIANCE {
+		return utils.WithinArc(pos, posA, posB, roundness, hitRadius, c.Curvature, samples)
+	}
+	return utils.WithinLine(pos, posA, posB, hitRadius)
 }

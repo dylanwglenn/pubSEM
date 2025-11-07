@@ -50,6 +50,7 @@ func InitTestModel() *Model {
 		Thickness:   2.0,
 		Type:        COVARIANCE,
 		UserDefined: true,
+		Curvature:   true,
 	}
 
 	connectionC := &Connection{
