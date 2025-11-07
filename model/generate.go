@@ -17,9 +17,9 @@ func InitTestModel() *Model {
 	}
 
 	nodeB := &Node{
-		Class:       OBSERVED,
+		Class:       LATENT,
 		Pos:         utils.LocalPos{500, 200},
-		Dim:         utils.LocalDim{70, 50},
+		Dim:         utils.LocalDim{70, 70},
 		Col:         color.NRGBA{0, 0, 255, 255},
 		Thickness:   2.0,
 		UserDefined: false,

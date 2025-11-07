@@ -42,6 +42,30 @@ func DrawRect(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thickn
 	)
 }
 
+func DrawRoundedRect(ops *op.Ops, pos GlobalPos, dim GlobalDim, r int, col color.NRGBA, thickness float32) {
+	rrect := clip.RRect{
+		Rect: MakeRect(pos, dim),
+		SE:   r,
+		SW:   r,
+		NE:   r,
+		NW:   r,
+	}
+
+	defer rrect.Push(ops).Pop()
+
+	// Draw fill
+	paint.ColorOp{Color: col}.Add(ops)
+	paint.PaintOp{}.Add(ops)
+
+	// Draw outline
+	paint.FillShape(ops, color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+		clip.Stroke{
+			Path:  rrect.Path(ops),
+			Width: thickness,
+		}.Op(),
+	)
+}
+
 func DrawEllipse(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thickness float32) {
 	el := clip.Ellipse(MakeRect(pos, dim))
 

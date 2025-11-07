@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	startingWidth  int = 1200
-	startingHeight int = 800
-	roundness          = .3
+	startingWidth    int = 1200
+	startingHeight   int = 800
+	roundness            = .3
+	editorVertOffset     = 30
 )
 
 var (
@@ -28,26 +29,27 @@ var (
 
 // EditContext contains the current editor state
 type EditContext struct {
-	viewportCenter     utils.LocalPos
-	windowSize         utils.GlobalDim
-	scaleFactor        float32
-	snapGridSize       float32
-	nodeDragOffset     utils.LocalPos // The offset of the cursor from the center of a node when clicking
-	panClickPos        utils.LocalPos
-	panOffset          utils.LocalPos
-	selectedNode       *model.Node
-	selectedConnection *model.Connection
+	viewportCenter   utils.LocalPos
+	windowSize       utils.GlobalDim
+	scaleFactor      float32
+	snapGridSize     float32
+	nodeDragOffset   utils.LocalPos // The offset of the cursor from the center of a node when clicking
+	panClickPos      utils.LocalPos
+	panOffset        utils.LocalPos
+	selectedNode     *model.Node
+	editingSelection interface{}
 }
 
 func main() {
 	m := model.InitTestModel()
 	ec := InitEditContext()
+	widgets := InitWidgets(m)
 	go func() {
 		// create new window
 		w := new(app.Window)
 		w.Option(app.Title("Pub SEM"))
 		w.Option(app.Size(unit.Dp(startingWidth), unit.Dp(startingHeight)))
-		if err := loop(w, m, ec); err != nil {
+		if err := loop(w, m, ec, widgets); err != nil {
 			log.Fatal(err)
 		}
 		os.Exit(0)
@@ -55,7 +57,7 @@ func main() {
 	app.Main()
 }
 
-func loop(w *app.Window, m *model.Model, ec *EditContext) error {
+func loop(w *app.Window, m *model.Model, ec *EditContext, widgets ModelWidgets) error {
 	ops := new(op.Ops)
 
 	// listen for events in the window.
@@ -73,13 +75,23 @@ func loop(w *app.Window, m *model.Model, ec *EditContext) error {
 			// handle scrolling to zoom
 			Scroll(ops, gtx, ec)
 
+			// draw the model
+			DrawModel(ops, m, ec)
+
+			if ec.editingSelection != nil {
+				switch s := ec.editingSelection.(type) {
+				case *model.Node:
+					topNodePos := s.Pos.Sub(utils.LocalPos{Y: s.Dim.H / 2})
+					posOffset := topNodePos.Sub(utils.LocalPos{Y: editorVertOffset})
+					widgets.DrawNodeEditor(ops, s, posOffset, ec)
+				case *model.Connection:
+				}
+			}
+
 			// if not clicking a node, panning is available
 			LeftClick(ops, gtx, m, ec)
 
-			RightClick(ops, gtx, m, ec)
-
-			// draw the model
-			DrawModel(ops, m, ec)
+			RightClick(ops, gtx, m, ec, widgets)
 
 			// complete the frame event
 			e.Frame(gtx.Ops)
@@ -168,7 +180,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	}
 }
 
-func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext, widgets ModelWidgets) {
 	// Register for pan events on the entire window
 	event.Op(ops, rightClickTag)
 
@@ -194,10 +206,40 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 					tolerance := float32(5)
 					samples := 10
 					if WithinConnection(evt.Position.Round(), c, ec, tolerance, samples) {
-						println("YAY")
-						break
+						if ec.editingSelection != c {
+							ec.editingSelection = c
+						} else {
+							ec.editingSelection = nil
+						}
 					}
 				}
+
+				for _, n := range m.Nodes {
+					rect := utils.MakeRect(
+						n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+						n.Dim.ToGlobal(ec.scaleFactor),
+					)
+
+					switch n.Class {
+					case model.OBSERVED:
+						if utils.WithinRect(evt.Position.Round(), rect) {
+							if ec.editingSelection != n {
+								ec.editingSelection = n
+							} else {
+								ec.editingSelection = nil
+							}
+						}
+					case model.LATENT:
+						if utils.WithinEllipse(evt.Position.Round(), rect) {
+							if ec.editingSelection != n {
+								ec.editingSelection = n
+							} else {
+								ec.editingSelection = nil
+							}
+						}
+					}
+				}
+
 			default:
 			}
 		}
