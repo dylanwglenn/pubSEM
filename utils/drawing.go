@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"math"
+	"strconv"
 	"strings"
 
 	"gioui.org/f32"
@@ -16,6 +18,15 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"golang.org/x/image/math/fixed"
+)
+
+type CoefficientDisplay int
+
+const (
+	NONE CoefficientDisplay = iota
+	VALUE
+	INTERVAL
+	STAR
 )
 
 func MakeRect(pos GlobalPos, dim GlobalDim) image.Rectangle {
@@ -41,12 +52,14 @@ func DrawRect(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thickn
 	paint.PaintOp{}.Add(ops)
 
 	// Draw outline
-	paint.FillShape(ops, color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-		clip.Stroke{
-			Path:  rect.Path(),
-			Width: thickness,
-		}.Op(),
-	)
+	if thickness > 0 {
+		paint.FillShape(ops, color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+			clip.Stroke{
+				Path:  rect.Path(),
+				Width: thickness,
+			}.Op(),
+		)
+	}
 }
 
 func DrawRoundedRect(ops *op.Ops, pos GlobalPos, dim GlobalDim, r int, col color.NRGBA, thickness float32) {
@@ -219,4 +232,44 @@ func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
 	spaceRunes := strings.Count(txt, " ")
 	spaceWidth := 3                                             // this is a magic number. It was arrived at through trial and error
 	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
+}
+
+func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, scaleFactor float32) string {
+	// define the string to be printed
+	var estText string
+
+	floatFmtStr := "%." + strconv.Itoa(precision) + "f"
+	switch displayStyle {
+	case VALUE:
+		estText = fmt.Sprintf(floatFmtStr, est)
+	case INTERVAL:
+		estText = fmt.Sprintf(floatFmtStr+floatFmtStr, ci[0], ci[1])
+	case STAR:
+		var stars string
+		switch {
+		case pVal < .001:
+			stars = "***"
+		case pVal < .01:
+			stars = "**"
+		case pVal < .05:
+			stars = "*"
+		}
+		estText = fmt.Sprintf(floatFmtStr+"%s", est, stars)
+	default:
+	}
+
+	// draw the background rectangle
+	var padding float32 = 2.5
+	textWidth := GetTextWidth(estText, fontStyle, fontSize)
+	adjWidth := textWidth + padding*3.0
+	height := fontSize * 1.5 // todo: find a better way to determine height of text
+	dim := LocalDim{W: adjWidth, H: height}
+
+	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
+
+	// draw text
+	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
+	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
+
+	return estText
 }

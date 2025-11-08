@@ -215,6 +215,24 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				ec.windowSize,
 			)
 		}
+
+		c.EstPos = c.OriginPos.Add(c.DestinationPos).Div(2)
+
+		if coefficientDisplay != utils.NONE {
+			c.EstText = utils.DrawEstimate(
+				ops,
+				gtx,
+				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				fontFace,
+				fontSize,
+				coefficientDisplay,
+				c.Est,
+				c.PValue,
+				c.CI,
+				decimalPlaces,
+				ec.scaleFactor,
+			)
+		}
 	}
 }
 

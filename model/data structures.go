@@ -41,7 +41,12 @@ type Connection struct {
 	Col            color.NRGBA
 	Thickness      float32
 	Type           ConnectionType
-	Text           string
+	EstPos         utils.LocalPos
+	EstDim         utils.LocalDim
+	Est            float64
+	PValue         float64
+	CI             [2]float64
+	EstText        string
 	Curvature      bool // only applicable for covariance (curved) connections
 	UserDefined    bool
 }

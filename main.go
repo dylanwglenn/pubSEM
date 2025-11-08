@@ -26,10 +26,12 @@ const (
 )
 
 var (
-	leftClickTag          = new(int)
-	rightClickTag         = new(int)
-	fontSize      float32 = 16
-	fontFace      font.FontFace
+	leftClickTag               = new(int)
+	rightClickTag              = new(int)
+	fontSize           float32 = 16
+	fontFace           font.FontFace
+	coefficientDisplay utils.CoefficientDisplay
+	decimalPlaces      int
 )
 
 // EditContext contains the current editor state
@@ -50,6 +52,10 @@ func main() {
 	ec := InitEditContext()
 	widgets := InitWidgets(m)
 	th := material.NewTheme()
+
+	// testing
+	decimalPlaces = 2
+	coefficientDisplay = utils.STAR
 
 	//fontFace = utils.LoadCousineFontFace()[0] // monospaced font
 	fontFace = utils.LoadSansFontFace()[0]
