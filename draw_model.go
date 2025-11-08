@@ -66,25 +66,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			c.Angle = utils.NormalizeAngle(angle)
 		}
 
-		if c.Origin.Class == model.OBSERVED {
-			edge := AngleToEdge(c.Angle)
-			c.Origin.EdgeConnections[edge] = append(c.Origin.EdgeConnections[edge], c)
-		}
-
-		if c.Destination.Class == model.OBSERVED {
-			var angle float64
-			switch c.Type {
-			case model.REGRESSION:
-				angle = utils.NormalizeAngle(c.Angle + math.Pi)
-			case model.COVARIANCE:
-				ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), roundness, c.Curvature)
-				angle = -math.Atan2(float64(ctrl.Y-c.Destination.Pos.ToF32().Y), float64(ctrl.X-c.Destination.Pos.ToF32().X))
-				angle = utils.NormalizeAngle(angle)
-			}
-
-			edge := AngleToEdge(angle)
-			c.Destination.EdgeConnections[edge] = append(c.Destination.EdgeConnections[edge], c)
-		}
+		AssignToEdges(c)
 	}
 
 	// draw observed nodes
@@ -232,6 +214,84 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			)
 		}
 	}
+}
+
+func AssignToEdges(c *model.Connection) {
+	if c.Origin.Class == model.OBSERVED && c.Destination.Class == model.LATENT {
+		edge := AngleToEdge(c.Angle)
+		c.Origin.EdgeConnections[edge] = append(c.Origin.EdgeConnections[edge], c)
+	}
+
+	if c.Origin.Class == model.LATENT && c.Destination.Class == model.OBSERVED {
+		angle := InvertAngle(c)
+		edge := AngleToEdge(angle)
+		c.Destination.EdgeConnections[edge] = append(c.Destination.EdgeConnections[edge], c)
+	}
+
+	if c.Origin.Class == model.OBSERVED && c.Destination.Class == model.OBSERVED {
+		// assign origin edge like normal
+		edgeOrigin := AngleToEdge(c.Angle)
+		c.Origin.EdgeConnections[edgeOrigin] = append(c.Origin.EdgeConnections[edgeOrigin], c)
+
+		// from this edge, find recalculate the connection angle
+		edgePoint := SubdivideNodeEdge(c.Origin, edgeOrigin, 1)[0]
+		angleIntermediate := utils.GetAngleLoc(edgePoint, c.Destination.Pos)
+
+		candidateDestEdges := GetCandidateDestEdges(angleIntermediate)
+		edgeDest := GetBestEdge(candidateDestEdges, c.Destination, edgePoint)
+		c.Destination.EdgeConnections[edgeDest] = append(c.Destination.EdgeConnections[edgeDest], c)
+	}
+}
+
+func GetBestEdge(candidateEdges []int, destNode *model.Node, originEdgePoint utils.LocalPos) int {
+	// best edge is defined as the edge where the line angle is maximally different from
+	// the edge angle (the edge angle being either flat or 90* based on the edge)
+	angles := make([]float64, 2)
+	for i, edge := range candidateEdges {
+		destEdgePoint := SubdivideNodeEdge(destNode, edge, 1)[0]
+		angle := utils.GetAngleLoc(originEdgePoint, destEdgePoint)
+		switch {
+		case edge == 0 || edge == 2:
+			angles[i] = math.Abs(math.Sin(angle))
+		case edge == 1 || edge == 3:
+			angles[i] = math.Abs(math.Cos(angle))
+		}
+	}
+
+	// find the largest difference
+	sort.Slice(candidateEdges, func(i, j int) bool {
+		return angles[i] > angles[j]
+	})
+
+	return candidateEdges[0]
+}
+
+func GetCandidateDestEdges(angle float64) []int {
+	switch {
+	case angle >= 0 && angle < math.Pi/2.0:
+		return []int{2, 3}
+	case angle >= math.Pi/2.0 && angle < math.Pi:
+		return []int{1, 2}
+	case angle >= math.Pi && angle < 3*math.Pi/2.0:
+		return []int{0, 1}
+	case angle >= 3*math.Pi/2.0 && angle < 2*math.Pi:
+		return []int{3, 0}
+	default:
+		panic("invalid angle value")
+	}
+}
+
+func InvertAngle(c *model.Connection) float64 {
+	var angle float64
+	switch c.Type {
+	case model.REGRESSION:
+		angle = utils.NormalizeAngle(c.Angle + math.Pi)
+	case model.COVARIANCE:
+		ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), roundness, c.Curvature)
+		angle = -math.Atan2(float64(ctrl.Y-c.Destination.Pos.ToF32().Y), float64(ctrl.X-c.Destination.Pos.ToF32().X))
+		angle = utils.NormalizeAngle(angle)
+	}
+	return angle
 }
 
 func AngleToEdge(angle float64) int {
