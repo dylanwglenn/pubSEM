@@ -10,3 +10,7 @@ func SnapToGrid(pos LocalPos, gridSize float32) LocalPos {
 
 	return LocalPos{X: posX, Y: posY}
 }
+
+func SnapValue(val, gridSize float32) float32 {
+	return float32(math.Round(float64(val)/float64(gridSize))) * gridSize
+}

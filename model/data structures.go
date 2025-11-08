@@ -29,6 +29,7 @@ type Node struct {
 	Thickness       float32
 	UserDefined     bool
 	EdgeConnections [4][]*Connection // only applicable for observed (rectangular) nodes
+	Padding         float32
 }
 
 type Connection struct {

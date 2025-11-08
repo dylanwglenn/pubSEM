@@ -22,6 +22,7 @@ const (
 	startingHeight   int = 800
 	roundness            = .3
 	editorVertOffset     = 30
+	targetPadding        = 10
 )
 
 var (
@@ -29,7 +30,6 @@ var (
 	rightClickTag         = new(int)
 	fontSize      float32 = 16
 	fontFace      font.FontFace
-	padding       float32 = 10
 )
 
 // EditContext contains the current editor state
