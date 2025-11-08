@@ -185,10 +185,12 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 	for _, c := range m.Connections {
 		if c.Origin.Class == model.LATENT {
-			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, c.Angle, c.Origin.Dim.W/2.0)
+			angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
+			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
 		}
 		if c.Destination.Class == model.LATENT {
-			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, c.Angle+math.Pi, c.Destination.Dim.W/2.0)
+			angleToLatent := utils.GetAngleLoc(c.OriginPos, c.Destination.Pos)
+			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
 		}
 
 		switch c.Type {
@@ -217,18 +219,17 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 }
 
 func AssignToEdges(c *model.Connection) {
-	if c.Origin.Class == model.OBSERVED && c.Destination.Class == model.LATENT {
+	switch {
+	case c.Origin.Class == model.OBSERVED && c.Destination.Class == model.LATENT:
 		edge := AngleToEdge(c.Angle)
 		c.Origin.EdgeConnections[edge] = append(c.Origin.EdgeConnections[edge], c)
-	}
 
-	if c.Origin.Class == model.LATENT && c.Destination.Class == model.OBSERVED {
+	case c.Origin.Class == model.LATENT && c.Destination.Class == model.OBSERVED:
 		angle := InvertAngle(c)
 		edge := AngleToEdge(angle)
 		c.Destination.EdgeConnections[edge] = append(c.Destination.EdgeConnections[edge], c)
-	}
 
-	if c.Origin.Class == model.OBSERVED && c.Destination.Class == model.OBSERVED {
+	case c.Origin.Class == model.OBSERVED && c.Destination.Class == model.OBSERVED:
 		// assign origin edge like normal
 		edgeOrigin := AngleToEdge(c.Angle)
 		c.Origin.EdgeConnections[edgeOrigin] = append(c.Origin.EdgeConnections[edgeOrigin], c)
@@ -241,6 +242,7 @@ func AssignToEdges(c *model.Connection) {
 		edgeDest := GetBestEdge(candidateDestEdges, c.Destination, edgePoint)
 		c.Destination.EdgeConnections[edgeDest] = append(c.Destination.EdgeConnections[edgeDest], c)
 	}
+
 }
 
 func GetBestEdge(candidateEdges []int, destNode *model.Node, originEdgePoint utils.LocalPos) int {
