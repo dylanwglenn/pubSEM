@@ -28,7 +28,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	for _, n := range m.Nodes {
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
-		textWidth := utils.GetTextWidth(n.Text, fontFace, fontSize)
+		textWidth := utils.GetTextWidth(n.Text, fontFace, fontSize) + padding*2
 		switch n.Class {
 		case model.OBSERVED:
 			n.Dim = utils.LocalDim{W: textWidth, H: 50}
@@ -158,7 +158,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			//TODO: Handle drawing intercept
 		}
 
-		textOffset := utils.LocalDim{W: n.Dim.W / 2.0, H: fontSize / 2.0}
+		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - padding, H: fontSize / 1.5}
 		utils.DrawText(
 			ops,
 			gtx,

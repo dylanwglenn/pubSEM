@@ -25,10 +25,11 @@ const (
 )
 
 var (
-	leftClickTag  = new(int)
-	rightClickTag = new(int)
-	fontSize      = float32(16)
+	leftClickTag          = new(int)
+	rightClickTag         = new(int)
+	fontSize      float32 = 16
 	fontFace      font.FontFace
+	padding       float32 = 10
 )
 
 // EditContext contains the current editor state
