@@ -6,7 +6,9 @@ import (
 	"math"
 	"sort"
 
+	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/unit"
 )
 
 // edge numbering for rectangles
@@ -20,11 +22,19 @@ import (
 //   ----------------------------
 //                2
 
-func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
+func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
 
 	// Reset all node connections every frame
 	for _, n := range m.Nodes {
 		n.EdgeConnections = [4][]*model.Connection{}
+		// define node dimensions
+		textWidth := utils.GetTextWidth(n.Text, fontFace, fontSize)
+		switch n.Class {
+		case model.OBSERVED:
+			n.Dim = utils.LocalDim{W: textWidth, H: 50}
+		case model.LATENT:
+			n.Dim = utils.LocalDim{W: textWidth, H: textWidth}
+		}
 	}
 
 	// Rule for connections:
@@ -147,6 +157,17 @@ func DrawModel(ops *op.Ops, m *model.Model, ec *EditContext) {
 		case model.INTERCEPT:
 			//TODO: Handle drawing intercept
 		}
+
+		textOffset := utils.LocalDim{W: n.Dim.W / 2.0, H: fontSize / 2.0}
+		utils.DrawText(
+			ops,
+			gtx,
+			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+			n.Text,
+			fontFace,
+			unit.Sp(fontSize),
+			ec.scaleFactor,
+		)
 	}
 
 	for _, c := range m.Connections {

@@ -6,31 +6,30 @@ import (
 )
 
 func InitTestModel() *Model {
-
 	nodeA := &Node{
 		Class:       OBSERVED,
+		Text:        "khalksfdhlkjsahdflksahfsafd",
 		Pos:         utils.LocalPos{100, 100},
-		Dim:         utils.LocalDim{50, 50},
-		Col:         color.NRGBA{0, 255, 0, 255},
-		Thickness:   2.0,
+		Col:         color.NRGBA{255, 255, 255, 255},
+		Thickness:   3.0,
 		UserDefined: true,
 	}
 
 	nodeB := &Node{
-		Class:       LATENT,
+		Class:       OBSERVED,
+		Text:        "Mental Health 1",
 		Pos:         utils.LocalPos{500, 200},
-		Dim:         utils.LocalDim{70, 70},
-		Col:         color.NRGBA{0, 0, 255, 255},
-		Thickness:   2.0,
+		Col:         color.NRGBA{255, 255, 255, 255},
+		Thickness:   3.0,
 		UserDefined: false,
 	}
 
 	nodeC := &Node{
 		Class:       LATENT,
+		Text:        "Migration",
 		Pos:         utils.LocalPos{-50, 100},
-		Dim:         utils.LocalDim{70, 70},
-		Col:         color.NRGBA{255, 50, 255, 255},
-		Thickness:   2.0,
+		Col:         color.NRGBA{255, 255, 255, 255},
+		Thickness:   3.0,
 		UserDefined: false,
 	}
 

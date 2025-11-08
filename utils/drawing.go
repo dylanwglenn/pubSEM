@@ -4,11 +4,18 @@ import (
 	"image"
 	"image/color"
 	"math"
+	"strings"
 
 	"gioui.org/f32"
+	"gioui.org/font"
+	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/text"
+	"gioui.org/unit"
+	"gioui.org/widget/material"
+	"golang.org/x/image/math/fixed"
 )
 
 func MakeRect(pos GlobalPos, dim GlobalDim) image.Rectangle {
@@ -175,4 +182,41 @@ func DrawArrow(ops *op.Ops, basePos GlobalPos, angle float64, arrowSize float64,
 	defer clip.Rect{Max: image.Pt(windowSize.W, windowSize.H)}.Push(ops).Pop()
 	paint.ColorOp{Color: col}.Add(ops)
 	paint.PaintOp{}.Add(ops)
+}
+
+func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style font.FontFace, size unit.Sp, scale float32) {
+	defer op.Offset(pos.ToImagePnt()).Push(ops).Pop()
+
+	// Apply scale transform
+	defer op.Affine(f32.Affine2D{}.Scale(f32.Point{}, f32.Pt(scale, scale))).Push(ops).Pop()
+
+	// Create a label with the text
+	label := material.Label(material.NewTheme(), size, txt)
+	label.Font = style.Font
+
+	// Draw the label
+	label.Layout(gtx)
+}
+
+func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
+	shaper := text.NewShaper()
+	params := text.Parameters{
+		Font:    style.Font,
+		PxPerEm: fixed.I(int(size)),
+	}
+
+	shaper.LayoutString(params, txt)
+
+	var width fixed.Int26_6
+	for {
+		g, ok := shaper.NextGlyph()
+		if !ok {
+			break
+		}
+		width += g.Advance
+	}
+
+	spaceRunes := strings.Count(txt, " ")
+	spaceWidth := 3                                             // this is a magic number. It was arrived at through trial and error
+	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
 }

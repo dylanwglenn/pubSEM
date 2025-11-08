@@ -8,11 +8,13 @@ import (
 	"os"
 
 	"gioui.org/app"
+	"gioui.org/font"
 	"gioui.org/io/event"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/unit"
+	"gioui.org/widget/material"
 )
 
 const (
@@ -25,6 +27,8 @@ const (
 var (
 	leftClickTag  = new(int)
 	rightClickTag = new(int)
+	fontSize      = float32(16)
+	fontFace      font.FontFace
 )
 
 // EditContext contains the current editor state
@@ -44,12 +48,17 @@ func main() {
 	m := model.InitTestModel()
 	ec := InitEditContext()
 	widgets := InitWidgets(m)
+	th := material.NewTheme()
+
+	//fontFace = utils.LoadCousineFontFace()[0] // monospaced font
+	fontFace = utils.LoadSansFontFace()[0]
+
 	go func() {
 		// create new window
 		w := new(app.Window)
 		w.Option(app.Title("Pub SEM"))
 		w.Option(app.Size(unit.Dp(startingWidth), unit.Dp(startingHeight)))
-		if err := loop(w, m, ec, widgets); err != nil {
+		if err := loop(w, th, m, ec, widgets); err != nil {
 			log.Fatal(err)
 		}
 		os.Exit(0)
@@ -57,7 +66,7 @@ func main() {
 	app.Main()
 }
 
-func loop(w *app.Window, m *model.Model, ec *EditContext, widgets ModelWidgets) error {
+func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, widgets ModelWidgets) error {
 	ops := new(op.Ops)
 
 	// listen for events in the window.
@@ -76,14 +85,15 @@ func loop(w *app.Window, m *model.Model, ec *EditContext, widgets ModelWidgets) 
 			Scroll(ops, gtx, ec)
 
 			// draw the model
-			DrawModel(ops, m, ec)
+			DrawModel(ops, gtx, m, ec)
 
+			//editorLayout := app.NewContext(ops, e)
 			if ec.editingSelection != nil {
 				switch s := ec.editingSelection.(type) {
 				case *model.Node:
 					topNodePos := s.Pos.Sub(utils.LocalPos{Y: s.Dim.H / 2})
 					posOffset := topNodePos.Sub(utils.LocalPos{Y: editorVertOffset})
-					widgets.DrawNodeEditor(ops, s, posOffset, ec)
+					widgets.DrawNodeEditor(ops, gtx, th, s, posOffset, ec)
 				case *model.Connection:
 				}
 			}
