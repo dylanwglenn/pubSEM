@@ -16,7 +16,7 @@ func InitTestModel() *Model {
 	}
 
 	nodeB := &Node{
-		Class:       OBSERVED,
+		Class:       LATENT,
 		Text:        "Mental Health 1",
 		Pos:         utils.LocalPos{500, 200},
 		Col:         color.NRGBA{255, 255, 255, 255},
@@ -25,9 +25,9 @@ func InitTestModel() *Model {
 	}
 
 	nodeC := &Node{
-		Class:       LATENT,
+		Class:       OBSERVED,
 		Text:        "Migration",
-		Pos:         utils.LocalPos{-50, 100},
+		Pos:         utils.LocalPos{-40, 100},
 		Col:         color.NRGBA{255, 255, 255, 255},
 		Thickness:   3.0,
 		UserDefined: false,
@@ -47,9 +47,9 @@ func InitTestModel() *Model {
 		Destination: nodeA,
 		Col:         color.NRGBA{0, 0, 0, 255},
 		Thickness:   2.0,
-		Type:        COVARIANCE,
+		Type:        REGRESSION,
 		UserDefined: true,
-		Curvature:   true,
+		Curvature:   false,
 	}
 
 	connectionC := &Connection{

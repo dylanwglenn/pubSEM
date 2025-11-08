@@ -103,11 +103,21 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				// sort connections based on angle
 				angles := make([]float64, len(connections))
 				for i, c := range connections {
-					if c.Destination == n {
-						angles[i] = c.Angle
-					}
-					if c.Origin == n {
-						angles[i] = utils.NormalizeAngle(c.Angle + math.Pi)
+					switch c.Type {
+					case model.REGRESSION:
+						if c.Destination == n {
+							angles[i] = c.Angle
+						}
+						if c.Origin == n {
+							angles[i] = utils.NormalizeAngle(c.Angle + math.Pi)
+						}
+					case model.COVARIANCE:
+						if c.Origin == n {
+							angles[i] = utils.GetAngleLoc(c.Destination.Pos, c.Origin.Pos)
+						}
+						if c.Destination == n {
+							angles[i] = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
+						}
 					}
 				}
 
@@ -132,6 +142,22 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				edgePoints := SubdivideNodeEdge(n, e, len(connections))
 
 				for i, c := range connections {
+					// override edge offset positioning if the nodes are sufficiently in-line
+					// e.g., if two nodes are directly on top of each other, they should connect from the middle,
+					// no matter the number of other connections
+					// this only matters if the number of connections on an edge is even
+					// for now, I will only consider the problem when the number of connections is 2
+					angle := utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
+					if len(connections) == 2 && utils.SufficientlyAligned(angle, math.Pi/256) {
+						if c.Destination == n {
+							c.DestinationPos = SubdivideNodeEdge(c.Destination, e, 1)[0]
+						}
+						if c.Origin == n {
+							c.OriginPos = SubdivideNodeEdge(c.Origin, e, 1)[0]
+						}
+						continue
+					}
+
 					if c.Destination == n {
 						c.DestinationPos = edgePoints[i]
 					}

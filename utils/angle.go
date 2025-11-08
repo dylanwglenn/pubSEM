@@ -35,3 +35,16 @@ func MoveAlongAngleLoc(pos LocalPos, angle float64, dist float32) LocalPos {
 
 	return LocalPos{newX, newY}
 }
+
+func SufficientlyAligned(angle, tolerance float64) bool {
+	// Check against 0, π/2, π, 3π/2, 2π
+	targets := []float64{0, math.Pi / 2, math.Pi, 3 * math.Pi / 2, 2 * math.Pi}
+
+	for _, target := range targets {
+		if math.Abs(angle-target) <= tolerance {
+			return true
+		}
+	}
+
+	return false
+}
