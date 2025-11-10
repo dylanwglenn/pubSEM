@@ -9,7 +9,7 @@ func InitTestModel() *Model {
 	nodeA := &Node{
 		Class:       OBSERVED,
 		Text:        "khalksfdhlkjsahdflksahfsafd",
-		Pos:         utils.LocalPos{100, 100},
+		Pos:         utils.LocalPos{100, 160},
 		Col:         color.NRGBA{255, 255, 255, 255},
 		Thickness:   3.0,
 		UserDefined: true,
@@ -47,7 +47,9 @@ func InitTestModel() *Model {
 		Destination: nodeA,
 		Col:         color.NRGBA{0, 0, 0, 255},
 		Thickness:   2.0,
-		Type:        REGRESSION,
+		Type:        COVARIANCE,
+		Est:         .01234656213,
+		PValue:      .00001,
 		UserDefined: true,
 		Curvature:   false,
 	}
@@ -58,6 +60,8 @@ func InitTestModel() *Model {
 		Col:         color.NRGBA{0, 0, 0, 255},
 		Thickness:   2.0,
 		Type:        REGRESSION,
+		Est:         .13486,
+		PValue:      .049,
 		UserDefined: true,
 	}
 
