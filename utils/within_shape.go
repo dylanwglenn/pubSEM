@@ -65,8 +65,8 @@ func WithinLine(pos image.Point, a, b GlobalPos, tolerance float32) bool {
 	return distSq <= tolerance*tolerance
 }
 
-func WithinArc(pos image.Point, a, b GlobalPos, roundness, tolerance float32, curvature bool, samples int) bool {
-	ctrl := GetCtrlPoint(a.ToF32(), b.ToF32(), roundness, curvature)
+func WithinArc(pos image.Point, a, b GlobalPos, curvature, tolerance float32, samples int) bool {
+	ctrl := GetCtrlPoint(a.ToF32(), b.ToF32(), curvature)
 
 	// Sample the curve and check distance to each segment
 	// More samples = better accuracy, but slower

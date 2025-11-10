@@ -5,6 +5,8 @@ import (
 	"main/utils"
 )
 
+const roundness = .3
+
 func InitTestModel() *Model {
 	nodeA := &Node{
 		Class:       OBSERVED,
@@ -40,6 +42,7 @@ func InitTestModel() *Model {
 		Thickness:   2.0,
 		Type:        REGRESSION,
 		UserDefined: true,
+		Curvature:   roundness,
 	}
 
 	connectionB := &Connection{
@@ -51,7 +54,7 @@ func InitTestModel() *Model {
 		Est:         .01234656213,
 		PValue:      .00001,
 		UserDefined: true,
-		Curvature:   false,
+		Curvature:   roundness,
 	}
 
 	connectionC := &Connection{
@@ -63,6 +66,7 @@ func InitTestModel() *Model {
 		Est:         .13486,
 		PValue:      .049,
 		UserDefined: true,
+		Curvature:   roundness,
 	}
 
 	return &Model{

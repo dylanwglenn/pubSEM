@@ -20,7 +20,6 @@ import (
 const (
 	startingWidth    int = 1200
 	startingHeight   int = 800
-	roundness            = .3
 	editorVertOffset     = 30
 	targetPadding        = 10
 )
@@ -94,7 +93,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			// draw the model
 			DrawModel(ops, gtx, m, ec)
 
-			//editorLayout := app.NewContext(ops, e)
+			//right click toolbar
 			if ec.editingSelection != nil {
 				switch s := ec.editingSelection.(type) {
 				case *model.Node:
@@ -311,7 +310,7 @@ func WithinConnection(pos image.Point, c *model.Connection, ec *EditContext, tol
 	hitRadius := tolerance + (c.Thickness*ec.scaleFactor)/2
 
 	if c.Type == model.COVARIANCE {
-		return utils.WithinArc(pos, posA, posB, roundness, hitRadius, c.Curvature, samples)
+		return utils.WithinArc(pos, posA, posB, c.Curvature, hitRadius, samples)
 	}
 	return utils.WithinLine(pos, posA, posB, hitRadius)
 }

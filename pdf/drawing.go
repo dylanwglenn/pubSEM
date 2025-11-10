@@ -54,9 +54,9 @@ func DrawArrowLine(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA,
 	DrawArrowHead(pdf, posB, angle, arrowSize, col)
 }
 
-func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, roundness float32, curvature bool) {
+func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
 	// Calculate control point for quadratic bezier
-	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness, curvature)
+	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	arrowSize := thickness * 5
 
@@ -69,7 +69,7 @@ func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, 
 	// Draw the arc shortened at both ends
 	startPos := utils.MoveAlongAngleLoc(posA, angleA+math.Pi, arrowSize*0.5)
 	endPos := utils.MoveAlongAngleLoc(posB, angleB+math.Pi, arrowSize*0.5)
-	DrawArc(pdf, startPos, endPos, col, thickness, roundness, curvature)
+	DrawArc(pdf, startPos, endPos, col, thickness, curvature)
 
 	// Draw arrow heads
 	DrawArrowHead(pdf, posA, angleA, arrowSize, col)
@@ -82,8 +82,8 @@ func DrawLine(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thic
 	pdf.Line(float64(posA.X), float64(posA.Y), float64(posB.X), float64(posB.Y))
 }
 
-func DrawArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, roundness float32, curvature bool) {
-	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness, curvature)
+func DrawArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
+	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	pdf.SetLineWidth(float64(thickness))
 	pdf.SetDrawColor(int(col.R), int(col.G), int(col.B))

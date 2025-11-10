@@ -104,9 +104,9 @@ func DrawEllipse(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thi
 	)
 }
 
-func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roundness float32, curvature bool, windowSize GlobalDim) {
+func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32, windowSize GlobalDim) {
 	// Calculate control point for tangent angles
-	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness, curvature)
+	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	arrowSize := float64(thickness * 5)
 
@@ -117,7 +117,7 @@ func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness,
 	angleB := -math.Atan2(float64(posB.ToF32().Y-ctrl.Y), float64(posB.ToF32().X-ctrl.X))
 
 	// Draw the arc
-	DrawArc(ops, MoveAlongAngleGlob(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngleGlob(posB, angleB+math.Pi, arrowSize*.5), col, thickness, roundness, curvature)
+	DrawArc(ops, MoveAlongAngleGlob(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngleGlob(posB, angleB+math.Pi, arrowSize*.5), col, thickness, curvature)
 
 	// Draw arrow at posA
 	DrawArrowHead(ops, posA, angleA, arrowSize, col, windowSize)
@@ -126,8 +126,8 @@ func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness,
 	DrawArrowHead(ops, posB, angleB, arrowSize, col, windowSize)
 }
 
-func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roundness float32, curvature bool) {
-	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), roundness, curvature)
+func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32) {
+	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	var path clip.Path
 	path.Begin(ops)
@@ -142,22 +142,15 @@ func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, roun
 	)
 }
 
-func GetCtrlPoint(posA, posB f32.Point, roundness float32, curvature bool) f32.Point {
+func GetCtrlPoint(posA, posB f32.Point, curvature float32) f32.Point {
 	mid := posA.Add(posB).Div(2)
 
 	dx := posB.X - posA.X
 	dy := posB.Y - posA.Y
 
-	if curvature {
-		return f32.Point{
-			X: mid.X + dy*roundness,
-			Y: mid.Y - dx*roundness,
-		}
-	} else {
-		return f32.Point{
-			X: mid.X - dy*roundness,
-			Y: mid.Y + dx*roundness,
-		}
+	return f32.Point{
+		X: mid.X - dy*curvature,
+		Y: mid.Y + dx*curvature,
 	}
 }
 

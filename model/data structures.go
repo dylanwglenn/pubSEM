@@ -47,7 +47,7 @@ type Connection struct {
 	PValue         float64
 	CI             [2]float64
 	EstText        string
-	Curvature      bool // only applicable for covariance (curved) connections
+	Curvature      float32 // only applicable for covariance (curved) connections
 	UserDefined    bool
 }
 
