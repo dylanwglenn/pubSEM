@@ -202,6 +202,11 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				c.Thickness*ec.scaleFactor,
 				ec.windowSize,
 			)
+
+			// determine label position as distance along curve
+			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
+			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
+			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
 		case model.COVARIANCE:
 			utils.DrawArrowArc(
 				ops,
@@ -212,11 +217,11 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				c.Curvature,
 				ec.windowSize,
 			)
-		}
 
-		angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
-		dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
-		c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
+			// determine label position as distance along curve
+			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
+			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
+		}
 
 		if coefficientDisplay != utils.NONE {
 			c.EstText, c.EstDim = utils.DrawEstimate(

@@ -34,3 +34,13 @@ func ProjectOntoLine(a, b, p f32.Point) (LocalPos, float32) {
 		Y: a.Y + t*ab.Y,
 	}, t
 }
+
+func MoveAlongBezier(a, b, ctrl f32.Point, t float32) LocalPos {
+	// Use quadratic Bézier: (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
+	oneMinusT := 1.0 - t
+
+	x := oneMinusT*oneMinusT*a.X + 2*oneMinusT*t*ctrl.X + t*t*b.X
+	y := oneMinusT*oneMinusT*a.Y + 2*oneMinusT*t*ctrl.Y + t*t*b.Y
+
+	return LocalPos{X: x, Y: y}
+}
