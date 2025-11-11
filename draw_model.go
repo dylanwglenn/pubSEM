@@ -30,13 +30,12 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		// define node dimensions
 		textWidth := utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size)
 		adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
+		n.Padding = (adjWidth - textWidth) / 2.0
 		switch n.Class {
 		case model.OBSERVED:
 			n.Dim = utils.LocalDim{W: adjWidth, H: 50}
-			n.Padding = (adjWidth - textWidth) / 2.0
 		case model.LATENT:
 			n.Dim = utils.LocalDim{W: adjWidth, H: adjWidth}
-			n.Padding = (adjWidth - textWidth) / 2.0
 		case model.INTERCEPT:
 			//todo: handle intercepts
 		}
@@ -45,10 +44,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	// Rule for connections:
 
 	// for observed variables --
-	// regression arrows terminate at the center of an edge, unless there are more than one regression arrows
-	// terminating on the same edge, in which case the terminating location is evenly distributed.
-	// regression arrows should originate from the center of an edge, regardless of how many other arrows
-	// originate from the same edge
+	// regression arrows originate and terminate at the center of an edge, unless there are more than one regression arrows
+	// from the same edge, in which case the terminating location is evenly distributed. The only exception is if
+	// the connection is at a cardinal angle, in which case it originates/terminates from the center, regardless
+	// of how many other connections originate/terminate at the same node.
 
 	// for latent variables --
 	// all arrows terminating at a latent variable terminate at the place along the edge that makes the path
@@ -171,7 +170,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			//TODO: Handle drawing intercept
 		}
 
-		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / 1.5}
+		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / 1.5} // I think 1.5 is a magic number
 		utils.DrawText(
 			ops,
 			gtx,
@@ -230,6 +229,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				c.CI,
 				decimalPlaces,
 				ec.scaleFactor,
+				c.EstPadding,
 			)
 		}
 	}
