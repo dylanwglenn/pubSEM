@@ -5,7 +5,10 @@ import (
 	"main/utils"
 )
 
-const roundness = .3
+const (
+	roundness  = .3
+	estPadding = 2.5
+)
 
 func InitTestModel() *Model {
 	nodeA := &Node{
@@ -43,6 +46,7 @@ func InitTestModel() *Model {
 		Type:        REGRESSION,
 		UserDefined: true,
 		Curvature:   roundness,
+		EstPadding:  estPadding,
 	}
 
 	connectionB := &Connection{
@@ -55,6 +59,7 @@ func InitTestModel() *Model {
 		PValue:      .00001,
 		UserDefined: true,
 		Curvature:   roundness,
+		EstPadding:  estPadding,
 	}
 
 	connectionC := &Connection{
@@ -67,6 +72,7 @@ func InitTestModel() *Model {
 		PValue:      .049,
 		UserDefined: true,
 		Curvature:   roundness,
+		EstPadding:  estPadding,
 	}
 
 	return &Model{

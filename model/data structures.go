@@ -46,6 +46,7 @@ type Connection struct {
 	Type           ConnectionType
 	EstPos         utils.LocalPos
 	EstDim         utils.LocalDim
+	EstPadding     float32
 	Est            float64
 	PValue         float64
 	CI             [2]float64

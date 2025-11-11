@@ -10,28 +10,28 @@ import (
 )
 
 const (
-	padding = 10
-	ppRatio = .75 // pixel-to-point conversion
+	docPadding = 15
+	ppRatio    = .75 // pixel-to-point conversion
 )
 
 func ExportModel(m *model.Model, filePath string) {
 	rect, localDim := GetModelSize(m)
 
-	pageWidth := localDim.W*ppRatio + 2*padding
-	pageHeight := localDim.H*ppRatio + 2*padding
+	pageWidth := localDim.W*ppRatio + 2*docPadding
+	pageHeight := localDim.H*ppRatio + 2*docPadding
 
 	pdf := gofpdf.NewCustom(&gofpdf.InitType{
 		UnitStr:    "pt",
 		Size:       gofpdf.SizeType{Wd: float64(pageWidth), Ht: float64(pageHeight)},
 		FontDirStr: "./utils/fonts/gofpdf_fonts",
 	})
-
+	pdf.SetAutoPageBreak(false, 0) // required to avoid automatic page breaks at different text sizes
 	utils.LoadPdfFonts(pdf)
 	pdf.AddPage()
 
 	// Offset to translate model coordinates to page coordinates
-	offsetX := padding - rect[0].X
-	offsetY := padding - rect[0].Y
+	offsetX := docPadding - rect[0].X
+	offsetY := docPadding - rect[0].Y
 
 	for _, n := range m.Nodes {
 		// Convert center position to top-left corner
@@ -42,23 +42,22 @@ func ExportModel(m *model.Model, filePath string) {
 
 		adjDim := n.Dim.Mul(ppRatio)
 
-		//textAdjustment := float32(1.05) // this is a magic number. Deal with it.
-		textWidth := utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size*ppRatio) + (n.Padding * ppRatio / 2)
-		textPos := utils.LocalPos{
-			X: adjPos.X + adjDim.W/2 - textWidth/2,
-			Y: adjPos.Y + adjDim.H/2,
-		}
-
 		switch n.Class {
 		case model.OBSERVED:
-			DrawRect(pdf, adjPos, adjDim, n.Col, n.Thickness*ppRatio*.5)
+			DrawRect(pdf, adjPos, adjDim, n.Col, n.Thickness*ppRatio*.5) // .5 adjusts thickness from Gio to gofpdf
 		case model.LATENT:
 			DrawEllipse(pdf, adjPos, adjDim, n.Col, n.Thickness*ppRatio*.5)
 		case model.INTERCEPT:
 			// todo: handle intercepts
 		}
 
-		DrawText(pdf, textPos, n.Text, m.Font.Family, n.Bold, m.Font.Size)
+		var textAdj float32 = 3.42 // this is seemingly random. Arrived at through trial and error
+		textPos := utils.LocalPos{
+			X: adjPos.X - textAdj + n.Padding*ppRatio,
+			Y: adjPos.Y + adjDim.H/2,
+		}
+
+		DrawText(pdf, textPos, n.Text, m.Font.Family, n.Bold, m.Font.Size, ppRatio)
 	}
 
 	for _, c := range m.Connections {
@@ -79,21 +78,21 @@ func ExportModel(m *model.Model, filePath string) {
 			DrawArrowArc(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
 		}
 
-		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio)
+		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio) + (c.EstPadding * ppRatio)
 		textPos := utils.LocalPos{
 			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2,
 			Y: (c.EstPos.Y+offsetY)*ppRatio - ppRatio/2, // assuming that ppRatio is text height
 		}
 
 		rectPos := utils.LocalPos{
-			X: (c.EstPos.X - c.EstDim.W/2 + offsetX) * ppRatio,
+			X: (c.EstPos.X-c.EstDim.W/2+offsetX)*ppRatio + (c.EstPadding * ppRatio),
 			Y: (c.EstPos.Y - c.EstDim.H/2 + offsetY) * ppRatio,
 		}
 
 		rectDim := c.EstDim.Mul(ppRatio)
 
 		DrawRect(pdf, rectPos, rectDim, color.NRGBA{255, 255, 255, 255}, 0)
-		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2)
+		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2, ppRatio)
 
 	}
 

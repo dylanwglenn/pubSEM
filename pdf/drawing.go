@@ -117,15 +117,16 @@ func DrawArrowHead(pdf *gofpdf.Fpdf, basePos utils.LocalPos, angle float64, size
 	}, "F")
 }
 
-func DrawText(pdf *gofpdf.Fpdf, pos utils.LocalPos, txt string, fontFamily string, bold bool, size float32) {
+func DrawText(pdf *gofpdf.Fpdf, pos utils.LocalPos, txt string, fontFamily string, bold bool, size, ppRatio float32) {
 	styleStr := ""
 	if bold {
 		styleStr = "B"
 	}
-	// Set font
-	pdf.SetFont(fontFamily, styleStr, float64(size*0.75)) // 0.75 is approximate conversion from Sp to PDF points
 
-	// Set text color to black (adjust if needed)
+	// Set font
+	pdf.SetFont(fontFamily, styleStr, float64(size*ppRatio)) // convert from Sp to PDF points
+
+	// Set text color to black
 	pdf.SetTextColor(0, 0, 0)
 
 	// Position and draw text
