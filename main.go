@@ -36,15 +36,16 @@ var (
 
 // EditContext contains the current editor state
 type EditContext struct {
-	viewportCenter   utils.LocalPos
-	windowSize       utils.GlobalDim
-	scaleFactor      float32
-	snapGridSize     float32
-	nodeDragOffset   utils.LocalPos // The offset of the cursor from the center of a node when clicking
-	panClickPos      utils.LocalPos
-	panOffset        utils.LocalPos
-	selectedNode     *model.Node
-	editingSelection interface{}
+	viewportCenter    utils.LocalPos
+	windowSize        utils.GlobalDim
+	scaleFactor       float32
+	snapGridSize      float32
+	dragOffset        utils.LocalPos // The offset of the cursor from the center of a node when clicking
+	panClickPos       utils.LocalPos
+	panOffset         utils.LocalPos
+	draggedNode       *model.Node
+	draggedConnection *model.Connection
+	editingSelection  interface{}
 }
 
 func main() {
@@ -172,7 +173,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 				// check if clicking a node
 				for _, n := range m.Nodes {
-					if ec.selectedNode != nil {
+					if ec.draggedNode != nil {
 						break
 					}
 
@@ -184,31 +185,62 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 					switch n.Class {
 					case model.OBSERVED:
 						if utils.WithinRect(evt.Position.Round(), rect) {
-							ec.selectedNode = n
+							ec.draggedNode = n
 						}
 					case model.LATENT:
 						if utils.WithinEllipse(evt.Position.Round(), rect) {
-							ec.selectedNode = n
+							ec.draggedNode = n
 						}
 					case model.INTERCEPT:
 						//todo: handle intercept
 					}
 				}
 
-				if n := ec.selectedNode; n != nil { // if clicking a node...
-					ec.nodeDragOffset = utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(n.Pos)
+				// check if clicking an estimate label
+				for _, c := range m.Connections {
+					if ec.draggedConnection != nil {
+						break
+					}
+
+					labRect := utils.MakeRect(
+						c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+						c.EstDim.ToGlobal(ec.scaleFactor),
+					)
+
+					if utils.WithinRect(evt.Position.Round(), labRect) {
+						ec.draggedConnection = c
+					}
+				}
+
+				if n := ec.draggedNode; n != nil { // if clicking a node ...
+					ec.dragOffset = utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(n.Pos)
+				} else if c := ec.draggedConnection; c != nil {
+					ec.dragOffset = utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(c.EstPos)
 				} else { // if not clicking a node, then setup pan
 					ec.panClickPos = utils.ToLocalPos(evt.Position)
 					ec.panOffset = ec.viewportCenter
 				}
+
 			case pointer.Drag:
 				// Only respond to left mouse button
 				if evt.Buttons != pointer.ButtonPrimary {
 					continue
 				}
-				if n := ec.selectedNode; n != nil { // if dragging a node...
-					newPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.nodeDragOffset)
+
+				if n := ec.draggedNode; n != nil { // if dragging a node...
+					newPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.dragOffset)
 					n.Pos = utils.SnapToGrid(newPos, ec.snapGridSize)
+
+				} else if c := ec.draggedConnection; c != nil {
+					newCursorPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.dragOffset)
+					switch c.Type {
+					case model.REGRESSION:
+						// project the new cursor position along the connection line
+						_, c.AlongLineProp = utils.ProjectOntoLine(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), newCursorPos.ToF32())
+
+					case model.COVARIANCE:
+					}
+
 				} else { // if not dragging a node, then pan
 					panDelta := utils.ToLocalPos(evt.Position).Sub(ec.panClickPos).Div(ec.scaleFactor)
 					ec.viewportCenter = ec.panOffset.Add(panDelta)
@@ -216,7 +248,8 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 					pointer.CursorGrab.Add(ops)
 				}
 			case pointer.Release:
-				ec.selectedNode = nil
+				ec.draggedNode = nil
+				ec.draggedConnection = nil
 				pointer.CursorDefault.Add(ops)
 			default:
 			}

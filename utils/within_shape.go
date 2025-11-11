@@ -28,34 +28,7 @@ func WithinEllipse(pos image.Point, rect image.Rectangle) bool {
 
 func WithinLine(pos image.Point, a, b GlobalPos, tolerance float32) bool {
 	p := f32.Point{X: float32(pos.X), Y: float32(pos.Y)}
-	// Vector from a to b
-	ab := b.ToF32().Sub(a.ToF32())
-	// Vector from a to p
-	ap := p.Sub(a.ToF32())
-
-	// Project p onto line segment
-	abLenSq := ab.X*ab.X + ab.Y*ab.Y
-	if abLenSq == 0 {
-		// a and b are the same point
-		dx := pos.X - a.X
-		dy := pos.Y - a.Y
-		return float32(dx*dx+dy*dy) <= tolerance*tolerance
-	}
-
-	t := (ap.X*ab.X + ap.Y*ab.Y) / abLenSq
-
-	// Clamp t to [0, 1] to stay on segment
-	if t < 0 {
-		t = 0
-	} else if t > 1 {
-		t = 1
-	}
-
-	// Closest point on segment
-	closest := f32.Point{
-		X: float32(a.X) + t*ab.X,
-		Y: float32(a.Y) + t*ab.Y,
-	}
+	closest, _ := ProjectOntoLine(a.ToF32(), b.ToF32(), p)
 
 	// Distance from p to nearest point
 	dx := p.X - closest.X

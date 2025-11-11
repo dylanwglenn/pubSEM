@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	roundness  = .3
-	estPadding = 2.5
+	roundness     = .3
+	estPadding    = 2.5
+	propAlongLine = .5
 )
 
 func InitTestModel() *Model {
@@ -39,40 +40,43 @@ func InitTestModel() *Model {
 	}
 
 	connectionA := &Connection{
-		Origin:      nodeA,
-		Destination: nodeB,
-		Col:         color.NRGBA{0, 0, 0, 255},
-		Thickness:   2.0,
-		Type:        REGRESSION,
-		UserDefined: true,
-		Curvature:   roundness,
-		EstPadding:  estPadding,
+		Origin:        nodeA,
+		Destination:   nodeB,
+		Col:           color.NRGBA{0, 0, 0, 255},
+		Thickness:     2.0,
+		Type:          REGRESSION,
+		UserDefined:   true,
+		Curvature:     roundness,
+		EstPadding:    estPadding,
+		AlongLineProp: propAlongLine,
 	}
 
 	connectionB := &Connection{
-		Origin:      nodeC,
-		Destination: nodeA,
-		Col:         color.NRGBA{0, 0, 0, 255},
-		Thickness:   2.0,
-		Type:        COVARIANCE,
-		Est:         .01234656213,
-		PValue:      .00001,
-		UserDefined: true,
-		Curvature:   roundness,
-		EstPadding:  estPadding,
+		Origin:        nodeC,
+		Destination:   nodeA,
+		Col:           color.NRGBA{0, 0, 0, 255},
+		Thickness:     2.0,
+		Type:          COVARIANCE,
+		Est:           .01234656213,
+		PValue:        .00001,
+		UserDefined:   true,
+		Curvature:     roundness,
+		EstPadding:    estPadding,
+		AlongLineProp: propAlongLine,
 	}
 
 	connectionC := &Connection{
-		Origin:      nodeB,
-		Destination: nodeC,
-		Col:         color.NRGBA{0, 0, 0, 255},
-		Thickness:   2.0,
-		Type:        REGRESSION,
-		Est:         .13486,
-		PValue:      .049,
-		UserDefined: true,
-		Curvature:   roundness,
-		EstPadding:  estPadding,
+		Origin:        nodeB,
+		Destination:   nodeC,
+		Col:           color.NRGBA{0, 0, 0, 255},
+		Thickness:     2.0,
+		Type:          REGRESSION,
+		Est:           .13486,
+		PValue:        .049,
+		UserDefined:   true,
+		Curvature:     roundness,
+		EstPadding:    estPadding,
+		AlongLineProp: propAlongLine,
 	}
 
 	return &Model{

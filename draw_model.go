@@ -214,7 +214,9 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			)
 		}
 
-		c.EstPos = c.OriginPos.Add(c.DestinationPos).Div(2)
+		angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
+		dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
+		c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
 
 		if coefficientDisplay != utils.NONE {
 			c.EstText, c.EstDim = utils.DrawEstimate(

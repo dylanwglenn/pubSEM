@@ -47,6 +47,7 @@ type Connection struct {
 	EstPos         utils.LocalPos
 	EstDim         utils.LocalDim
 	EstPadding     float32
+	AlongLineProp  float32 // how far along the line is the estimate label? defaults to .5
 	Est            float64
 	PValue         float64
 	CI             [2]float64
