@@ -20,7 +20,7 @@ type GlobalPos struct {
 	X, Y int
 }
 
-func DistLocal(a, b LocalPos) float32 {
+func DistLoc(a, b LocalPos) float32 {
 	return float32(math.Sqrt(math.Pow(float64(b.X-a.X), 2) + math.Pow(float64(b.Y-a.Y), 2)))
 }
 
@@ -122,6 +122,10 @@ func (gPos GlobalPos) Add(x GlobalPos) GlobalPos {
 
 func (gPos GlobalPos) AddDim(x GlobalDim) GlobalPos {
 	return GlobalPos{X: gPos.X + x.W, Y: gPos.Y + x.H}
+}
+
+func (gPos GlobalPos) SubDim(x GlobalDim) GlobalPos {
+	return GlobalPos{X: gPos.X - x.W, Y: gPos.Y - x.H}
 }
 
 func (gPos GlobalPos) Sub(x GlobalPos) GlobalPos {

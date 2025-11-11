@@ -3,6 +3,8 @@ package model
 import (
 	"image/color"
 	"main/utils"
+
+	"gioui.org/font"
 )
 
 type ParamType int
@@ -26,6 +28,7 @@ type Node struct {
 	Dim             utils.LocalDim
 	Col             color.NRGBA
 	Text            string
+	Bold            bool
 	Thickness       float32
 	UserDefined     bool
 	EdgeConnections [4][]*Connection // only applicable for observed (rectangular) nodes
@@ -47,11 +50,19 @@ type Connection struct {
 	PValue         float64
 	CI             [2]float64
 	EstText        string
+	Bold           bool
 	Curvature      float32 // only applicable for covariance (curved) connections
 	UserDefined    bool
+}
+
+type FontSettings struct {
+	Family string
+	Size   float32
+	Face   font.FontFace
 }
 
 type Model struct {
 	Nodes       []*Node
 	Connections []*Connection
+	Font        FontSettings
 }

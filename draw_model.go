@@ -28,7 +28,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	for _, n := range m.Nodes {
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
-		textWidth := utils.GetTextWidth(n.Text, fontFace, fontSize)
+		textWidth := utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size)
 		adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
 		switch n.Class {
 		case model.OBSERVED:
@@ -171,14 +171,14 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			//TODO: Handle drawing intercept
 		}
 
-		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: fontSize / 1.5}
+		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / 1.5}
 		utils.DrawText(
 			ops,
 			gtx,
 			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 			n.Text,
-			fontFace,
-			unit.Sp(fontSize),
+			m.Font.Face,
+			unit.Sp(m.Font.Size),
 			ec.scaleFactor,
 		)
 	}
@@ -218,12 +218,12 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		c.EstPos = c.OriginPos.Add(c.DestinationPos).Div(2)
 
 		if coefficientDisplay != utils.NONE {
-			c.EstText = utils.DrawEstimate(
+			c.EstText, c.EstDim = utils.DrawEstimate(
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				fontFace,
-				fontSize,
+				m.Font.Face,
+				m.Font.Size,
 				coefficientDisplay,
 				c.Est,
 				c.PValue,

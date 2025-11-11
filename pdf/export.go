@@ -1,1 +1,142 @@
 package pdf
+
+import "C"
+import (
+	"image/color"
+	"main/model"
+	"main/utils"
+
+	"github.com/jung-kurt/gofpdf"
+)
+
+const (
+	padding = 10
+	ppRatio = .75 // pixel-to-point conversion
+)
+
+func ExportModel(m *model.Model, filePath string) {
+	rect, localDim := GetModelSize(m)
+
+	pageWidth := localDim.W*ppRatio + 2*padding
+	pageHeight := localDim.H*ppRatio + 2*padding
+
+	pdf := gofpdf.NewCustom(&gofpdf.InitType{
+		UnitStr:    "pt",
+		Size:       gofpdf.SizeType{Wd: float64(pageWidth), Ht: float64(pageHeight)},
+		FontDirStr: "./utils/fonts/gofpdf_fonts",
+	})
+
+	utils.LoadPdfFonts(pdf)
+	pdf.AddPage()
+
+	// Offset to translate model coordinates to page coordinates
+	offsetX := padding - rect[0].X
+	offsetY := padding - rect[0].Y
+
+	for _, n := range m.Nodes {
+		// Convert center position to top-left corner
+		adjPos := utils.LocalPos{
+			X: (n.Pos.X - n.Dim.W/2 + offsetX) * ppRatio,
+			Y: (n.Pos.Y - n.Dim.H/2 + offsetY) * ppRatio,
+		}
+
+		adjDim := n.Dim.Mul(ppRatio)
+
+		//textAdjustment := float32(1.05) // this is a magic number. Deal with it.
+		textWidth := utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size*ppRatio) + (n.Padding * ppRatio / 2)
+		textPos := utils.LocalPos{
+			X: adjPos.X + adjDim.W/2 - textWidth/2,
+			Y: adjPos.Y + adjDim.H/2,
+		}
+
+		switch n.Class {
+		case model.OBSERVED:
+			DrawRect(pdf, adjPos, adjDim, n.Col, n.Thickness*ppRatio*.5)
+		case model.LATENT:
+			DrawEllipse(pdf, adjPos, adjDim, n.Col, n.Thickness*ppRatio*.5)
+		case model.INTERCEPT:
+			// todo: handle intercepts
+		}
+
+		DrawText(pdf, textPos, n.Text, m.Font.Family, n.Bold, m.Font.Size)
+	}
+
+	for _, c := range m.Connections {
+		// adjust connection points to PDS coords
+		originPos := utils.LocalPos{
+			X: (c.OriginPos.X + offsetX) * ppRatio,
+			Y: (c.OriginPos.Y + offsetY) * ppRatio,
+		}
+		destPos := utils.LocalPos{
+			X: (c.DestinationPos.X + offsetX) * ppRatio,
+			Y: (c.DestinationPos.Y + offsetY) * ppRatio,
+		}
+
+		switch c.Type {
+		case model.REGRESSION:
+			DrawArrowLine(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio)
+		case model.COVARIANCE:
+			DrawArrowArc(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
+		}
+
+		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio)
+		textPos := utils.LocalPos{
+			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2,
+			Y: (c.EstPos.Y+offsetY)*ppRatio - ppRatio/2, // assuming that ppRatio is text height
+		}
+
+		rectPos := utils.LocalPos{
+			X: (c.EstPos.X - c.EstDim.W/2 + offsetX) * ppRatio,
+			Y: (c.EstPos.Y - c.EstDim.H/2 + offsetY) * ppRatio,
+		}
+
+		rectDim := c.EstDim.Mul(ppRatio)
+
+		DrawRect(pdf, rectPos, rectDim, color.NRGBA{255, 255, 255, 255}, 0)
+		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2)
+
+	}
+
+	// export
+	err := pdf.OutputFileAndClose(filePath)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GetModelSize(m *model.Model) (rect [2]utils.LocalPos, dim utils.LocalDim) {
+	// first LocalPos in rect is the NW corner, second is the SE corner
+	// initialize rect as an existing position to ensure resultant rect is directly against the shapes
+	rect = [2]utils.LocalPos{m.Nodes[0].Pos, m.Nodes[0].Pos}
+
+	for _, n := range m.Nodes {
+		minX := n.Pos.X - n.Dim.W/2
+		maxX := n.Pos.X + n.Dim.W/2
+		minY := n.Pos.Y - n.Dim.H/2
+		maxY := n.Pos.Y + n.Dim.H/2
+
+		// handle x coords
+		if minX < rect[0].X {
+			rect[0].X = minX
+		}
+		if maxX > rect[1].X {
+			rect[1].X = maxX
+		}
+
+		// handle y coords
+		// (remember that lower ys are visually higher)
+		if minY < rect[0].Y {
+			rect[0].Y = minY
+		}
+		if maxY > rect[1].Y {
+			rect[1].Y = maxY
+		}
+	}
+
+	dim = utils.LocalDim{
+		W: utils.Abs32(rect[1].X - rect[0].X),
+		H: utils.Abs32(rect[1].Y - rect[0].Y),
+	}
+
+	return
+}

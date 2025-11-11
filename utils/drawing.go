@@ -227,7 +227,7 @@ func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
 	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
 }
 
-func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, scaleFactor float32) string {
+func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, scaleFactor float32) (string, LocalDim) {
 	// define the string to be printed
 	var estText string
 
@@ -264,5 +264,5 @@ func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font
 	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
 	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
 
-	return estText
+	return estText, dim
 }

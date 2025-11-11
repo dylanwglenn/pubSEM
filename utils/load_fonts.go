@@ -5,13 +5,8 @@ import (
 
 	"gioui.org/font/opentype"
 	"gioui.org/text"
+	"github.com/jung-kurt/gofpdf"
 )
-
-//go:embed fonts/Cousine/Cousine-Regular.ttf
-var monoNormalData []byte
-
-//go:embed fonts/Cousine/Cousine-Bold.ttf
-var monoBoldData []byte
 
 //go:embed fonts/Noto_Sans/static/NotoSans-Medium.ttf
 var sansNormalData []byte
@@ -24,15 +19,6 @@ var serifNormalData []byte
 
 //go:embed fonts/Noto_Serif/static/NotoSerif-Bold.ttf
 var serifBoldData []byte
-
-func LoadMonoFontFace() []text.FontFace {
-	normal, _ := opentype.Parse(monoNormalData)
-	bold, _ := opentype.Parse(monoBoldData)
-
-	normalFontFace := text.FontFace{Font: normal.Font(), Face: normal}
-	boldFontFace := text.FontFace{Font: bold.Font(), Face: bold}
-	return []text.FontFace{normalFontFace, boldFontFace}
-}
 
 func LoadSansFontFace() []text.FontFace {
 	normal, _ := opentype.Parse(sansNormalData)
@@ -50,4 +36,16 @@ func LoadSerifFontFace() []text.FontFace {
 	normalFontFace := text.FontFace{Font: normal.Font(), Face: normal}
 	boldFontFace := text.FontFace{Font: bold.Font(), Face: bold}
 	return []text.FontFace{normalFontFace, boldFontFace}
+}
+
+func LoadPdfFonts(pdf *gofpdf.Fpdf) {
+	// Add sans regular
+	pdf.AddFont("sans", "", "NotoSans-Regular.json")
+	// Add sans bold
+	pdf.AddFont("sans", "B", "NotoSans-Bold.json")
+
+	// Add serif regular
+	pdf.AddFont("serif", "", "NotoSerif-Regular.json")
+	// Add serif bold
+	pdf.AddFont("serif", "B", "NotoSerif-Bold.json")
 }

@@ -4,12 +4,13 @@ import (
 	"image"
 	"log"
 	"main/model"
+	"main/pdf"
 	"main/utils"
 	"os"
 
 	"gioui.org/app"
-	"gioui.org/font"
 	"gioui.org/io/event"
+	"gioui.org/io/key"
 	"gioui.org/io/pointer"
 	"gioui.org/layout"
 	"gioui.org/op"
@@ -27,8 +28,8 @@ const (
 var (
 	leftClickTag               = new(int)
 	rightClickTag              = new(int)
+	ctrlPressTag               = new(int)
 	fontSize           float32 = 16
-	fontFace           font.FontFace
 	coefficientDisplay utils.CoefficientDisplay
 	decimalPlaces      int
 )
@@ -53,11 +54,11 @@ func main() {
 	th := material.NewTheme()
 
 	// testing
+	m.Font.Size = fontSize
+	m.Font.Family = "sans"
+	m.Font.Face = utils.LoadSansFontFace()[0]
 	decimalPlaces = 2
 	coefficientDisplay = utils.STAR
-
-	//fontFace = utils.LoadCousineFontFace()[0] // monospaced font
-	fontFace = utils.LoadSansFontFace()[0]
 
 	go func() {
 		// create new window
@@ -109,12 +110,39 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 
 			RightClick(ops, gtx, m, ec, widgets)
 
+			CtrlPress(ops, gtx, m)
+
 			// complete the frame event
 			e.Frame(gtx.Ops)
 
 		// this is sent when the application is closed
 		case app.DestroyEvent:
 			return e.Err
+		}
+	}
+}
+
+func CtrlPress(ops *op.Ops, gtx layout.Context, m *model.Model) {
+	event.Op(ops, ctrlPressTag)
+
+	for {
+		ev, ok := gtx.Event(key.Filter{
+			Required: key.ModCtrl,
+		})
+		if !ok {
+			break
+		}
+
+		switch evt := ev.(type) {
+		case key.Event:
+			if evt.State != key.Press {
+				break
+			}
+			switch evt.Name {
+			case "S":
+				pdf.ExportModel(m, "test_exports/test.pdf")
+				println("successfully saved model to PDF")
+			}
 		}
 	}
 }
