@@ -29,7 +29,9 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
 		textWidth := utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size)
-		adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
+		// todo: decide whether to snap dimensions to grid as well as position
+		//adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
+		adjWidth := textWidth + targetPadding*2
 		n.Padding = (adjWidth - textWidth) / 2.0
 		switch n.Class {
 		case model.OBSERVED:
