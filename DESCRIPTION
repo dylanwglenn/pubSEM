@@ -10,7 +10,7 @@ Authors@R: c(
     )
   )
 Description: Easily ceate aesthetically pleasing and reproducable path diagrams
-    from fitted 'lavaan' models using an included GUI.
+    from fitted 'lavaan' structural equation models using an included GUI.
 License: use_gpl_license()
 Encoding: UTF-8
 LazyData: true
