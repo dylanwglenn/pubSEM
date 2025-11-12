@@ -2,3 +2,5 @@
 .Rhistory
 pubSEM.Rproj
 /.Rproj.user/
+/tools/main
+/tools/test.json

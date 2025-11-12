@@ -1,16 +1,20 @@
 Package: pubSEM
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Create Publication-Ready Path Diagrams from 'lavaan' Models
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Dylan", "Glenn",
+      email = "dylanwglenn@gmail.com",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Easily ceate aesthetically pleasing and reproducable path diagrams
+    from fitted 'lavaan' models using an included GUI.
+License: use_gpl_license()
 Encoding: UTF-8
 LazyData: true
+Imports:
+    jsonlite,
+    lavaan
+RoxygenNote: 7.3.3
