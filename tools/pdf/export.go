@@ -72,9 +72,9 @@ func ExportModel(m *model.Model, filePath string) {
 		}
 
 		switch c.Type {
-		case model.REGRESSION:
+		case model.STRAIGHT:
 			DrawArrowLine(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio)
-		case model.COVARIANCE:
+		case model.CURVED:
 			DrawArrowArc(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
 		}
 

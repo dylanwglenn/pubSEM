@@ -18,8 +18,8 @@ const (
 type ConnectionType int
 
 const (
-	REGRESSION ConnectionType = iota
-	COVARIANCE
+	STRAIGHT ConnectionType = iota
+	CURVED
 )
 
 type Node struct {
@@ -27,6 +27,7 @@ type Node struct {
 	Pos             utils.LocalPos
 	Dim             utils.LocalDim
 	Col             color.NRGBA
+	VarName         string
 	Text            string
 	Bold            bool
 	Thickness       float32
@@ -64,7 +65,9 @@ type FontSettings struct {
 }
 
 type Model struct {
-	Nodes       []*Node
-	Connections []*Connection
-	Font        FontSettings
+	Nodes         []*Node
+	Connections   []*Connection
+	Font          FontSettings
+	CoeffDisplay  utils.CoefficientDisplay
+	ViewGenerated bool
 }

@@ -44,7 +44,7 @@ func InitTestModel() *Model {
 		Destination:   nodeB,
 		Col:           color.NRGBA{0, 0, 0, 255},
 		Thickness:     2.0,
-		Type:          REGRESSION,
+		Type:          STRAIGHT,
 		UserDefined:   true,
 		Curvature:     roundness,
 		EstPadding:    estPadding,
@@ -56,7 +56,7 @@ func InitTestModel() *Model {
 		Destination:   nodeA,
 		Col:           color.NRGBA{0, 0, 0, 255},
 		Thickness:     2.0,
-		Type:          COVARIANCE,
+		Type:          CURVED,
 		Est:           .01234656213,
 		PValue:        .00001,
 		UserDefined:   true,
@@ -70,7 +70,7 @@ func InitTestModel() *Model {
 		Destination:   nodeC,
 		Col:           color.NRGBA{0, 0, 0, 255},
 		Thickness:     2.0,
-		Type:          REGRESSION,
+		Type:          STRAIGHT,
 		Est:           .13486,
 		PValue:        .049,
 		UserDefined:   true,
@@ -79,8 +79,14 @@ func InitTestModel() *Model {
 		AlongLineProp: propAlongLine,
 	}
 
-	return &Model{
+	m := &Model{
 		Nodes:       []*Node{nodeA, nodeB, nodeC},
 		Connections: []*Connection{connectionA, connectionB, connectionC},
 	}
+
+	m.Font.Size = 16
+	m.Font.Family = "sans"
+	m.Font.Face = utils.LoadSansFontFace()[0]
+
+	return m
 }

@@ -59,9 +59,9 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 	for _, c := range m.Connections {
 		switch c.Type {
-		case model.REGRESSION:
+		case model.STRAIGHT:
 			c.Angle = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
-		case model.COVARIANCE:
+		case model.CURVED:
 			ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), c.Curvature)
 			angle := -math.Atan2(float64(ctrl.Y-c.Origin.Pos.ToF32().Y), float64(ctrl.X-c.Origin.Pos.ToF32().X))
 			c.Angle = utils.NormalizeAngle(angle)
@@ -87,14 +87,14 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				angles := make([]float64, len(connections))
 				for i, c := range connections {
 					switch c.Type {
-					case model.REGRESSION:
+					case model.STRAIGHT:
 						if c.Destination == n {
 							angles[i] = c.Angle
 						}
 						if c.Origin == n {
 							angles[i] = utils.NormalizeAngle(c.Angle + math.Pi)
 						}
-					case model.COVARIANCE:
+					case model.CURVED:
 						if c.Origin == n {
 							angles[i] = utils.GetAngleLoc(c.Destination.Pos, c.Origin.Pos)
 						}
@@ -185,6 +185,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	}
 
 	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
 		if c.Origin.Class == model.LATENT {
 			angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
 			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
@@ -195,7 +199,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		}
 
 		switch c.Type {
-		case model.REGRESSION:
+		case model.STRAIGHT:
 			utils.DrawArrowLine(
 				ops,
 				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
@@ -209,7 +213,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
 			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
 			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
-		case model.COVARIANCE:
+		case model.CURVED:
 			utils.DrawArrowArc(
 				ops,
 				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
@@ -225,14 +229,112 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
 		}
 
-		if coefficientDisplay != utils.NONE {
+		if m.CoeffDisplay != utils.NONE {
 			c.EstText, c.EstDim = utils.DrawEstimate(
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				m.Font.Face,
 				m.Font.Size,
-				coefficientDisplay,
+				m.CoeffDisplay,
+				c.Est,
+				c.PValue,
+				c.CI,
+				decimalPlaces,
+				ec.scaleFactor,
+				c.EstPadding,
+			)
+		}
+	}
+}
+
+// DrawModelFixed is a faster function for lazyUpdate the view. It does not update local positions
+func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+	for _, n := range m.Nodes {
+		switch n.Class {
+		case model.OBSERVED:
+			utils.DrawRect(
+				ops,
+				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				n.Dim.ToGlobal(ec.scaleFactor),
+				n.Col,
+				n.Thickness*ec.scaleFactor,
+			)
+		case model.LATENT:
+			utils.DrawEllipse(
+				ops,
+				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				n.Dim.ToGlobal(ec.scaleFactor),
+				n.Col,
+				n.Thickness*ec.scaleFactor,
+			)
+		}
+
+		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / 1.5} // I think 1.5 is a magic number
+		utils.DrawText(
+			ops,
+			gtx,
+			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+			n.Text,
+			m.Font.Face,
+			unit.Sp(m.Font.Size),
+			ec.scaleFactor,
+		)
+	}
+
+	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
+		if c.Origin.Class == model.LATENT {
+			angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
+			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
+		}
+		if c.Destination.Class == model.LATENT {
+			angleToLatent := utils.GetAngleLoc(c.OriginPos, c.Destination.Pos)
+			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
+		}
+
+		switch c.Type {
+		case model.STRAIGHT:
+			utils.DrawArrowLine(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				ec.windowSize,
+			)
+
+			// determine label position as distance along curve
+			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
+			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
+			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
+		case model.CURVED:
+			utils.DrawArrowArc(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				c.Curvature,
+				ec.windowSize,
+			)
+
+			// determine label position as distance along curve
+			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
+			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
+		}
+
+		if m.CoeffDisplay != utils.NONE {
+			c.EstText, c.EstDim = utils.DrawEstimate(
+				ops,
+				gtx,
+				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				m.Font.Face,
+				m.Font.Size,
+				m.CoeffDisplay,
 				c.Est,
 				c.PValue,
 				c.CI,
@@ -312,9 +414,9 @@ func GetCandidateDestEdges(angle float64) []int {
 func InvertAngle(c *model.Connection) float64 {
 	var angle float64
 	switch c.Type {
-	case model.REGRESSION:
+	case model.STRAIGHT:
 		angle = utils.NormalizeAngle(c.Angle + math.Pi)
-	case model.COVARIANCE:
+	case model.CURVED:
 		ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), c.Curvature)
 		angle = -math.Atan2(float64(ctrl.Y-c.Destination.Pos.ToF32().Y), float64(ctrl.X-c.Destination.Pos.ToF32().X))
 		angle = utils.NormalizeAngle(angle)

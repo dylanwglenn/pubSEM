@@ -5,6 +5,7 @@ import (
 	"log"
 	"main/model"
 	"main/pdf"
+	"main/read_write"
 	"main/utils"
 	"os"
 
@@ -26,12 +27,10 @@ const (
 )
 
 var (
-	leftClickTag               = new(int)
-	rightClickTag              = new(int)
-	ctrlPressTag               = new(int)
-	fontSize           float32 = 16
-	coefficientDisplay utils.CoefficientDisplay
-	decimalPlaces      int
+	leftClickTag  = new(int)
+	rightClickTag = new(int)
+	ctrlPressTag  = new(int)
+	decimalPlaces int
 )
 
 // EditContext contains the current editor state
@@ -46,20 +45,21 @@ type EditContext struct {
 	draggedNode       *model.Node
 	draggedConnection *model.Connection
 	editingSelection  interface{}
+	lazyUpdate        bool
 }
 
 func main() {
-	m := model.InitTestModel()
+	// load in arguments passed into the application call
+	baseDir := os.Args[1]
+	//projectName := os.Args[2]
+
+	m := read_write.ModelFromJSON(baseDir)
 	ec := InitEditContext()
 	widgets := InitWidgets(m)
 	th := material.NewTheme()
 
 	// testing
-	m.Font.Size = fontSize
-	m.Font.Family = "sans"
-	m.Font.Face = utils.LoadSansFontFace()[0]
 	decimalPlaces = 2
-	coefficientDisplay = utils.STAR
 
 	go func() {
 		// create new window
@@ -90,10 +90,11 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			ec.windowSize = utils.GlobalDim{W: gtx.Constraints.Max.X, H: gtx.Constraints.Max.Y}
 
 			// handle scrolling to zoom
-			Scroll(ops, gtx, ec)
-
-			// draw the model
-			DrawModel(ops, gtx, m, ec)
+			if Scroll(ops, gtx, ec) {
+				ec.lazyUpdate = true
+			} else {
+				ec.lazyUpdate = false
+			}
 
 			//right click toolbar
 			if ec.editingSelection != nil {
@@ -106,12 +107,20 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 				}
 			}
 
-			// if not clicking a node, panning is available
+			// if not clicking a node, lazyUpdate is available
 			LeftClick(ops, gtx, m, ec)
 
 			RightClick(ops, gtx, m, ec, widgets)
 
 			CtrlPress(ops, gtx, m)
+
+			// draw the model
+			switch ec.lazyUpdate {
+			case true:
+				DrawModelFixed(ops, gtx, m, ec)
+			case false:
+				DrawModel(ops, gtx, m, ec)
+			}
 
 			// complete the frame event
 			e.Frame(gtx.Ops)
@@ -237,6 +246,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 					// todo: accurately move along a curved line (maybe)
 					_, c.AlongLineProp = utils.ProjectOntoLine(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), newCursorPos.ToF32())
 				} else { // if not dragging a node, then pan
+					ec.lazyUpdate = true
 					panDelta := utils.ToLocalPos(evt.Position).Sub(ec.panClickPos).Div(ec.scaleFactor)
 					ec.viewportCenter = ec.panOffset.Add(panDelta)
 					// add pan cursor hand
@@ -245,6 +255,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			case pointer.Release:
 				ec.draggedNode = nil
 				ec.draggedConnection = nil
+				ec.lazyUpdate = false
 				pointer.CursorDefault.Add(ops)
 			default:
 			}
@@ -318,11 +329,12 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 	}
 }
 
-func Scroll(ops *op.Ops, gtx layout.Context, ec *EditContext) {
+func Scroll(ops *op.Ops, gtx layout.Context, ec *EditContext) bool {
 	// Register for scroll events on the entire window
 	event.Op(ops, ops)
 
 	// Process scroll events
+	i := 0
 	for {
 		ev, ok := gtx.Event(pointer.Filter{
 			Target:  ops,
@@ -346,8 +358,15 @@ func Scroll(ops *op.Ops, gtx layout.Context, ec *EditContext) {
 				} else if ec.scaleFactor > 5.0 {
 					ec.scaleFactor = 5.0
 				}
+				i++
 			}
 		}
+	}
+
+	if i > 0 {
+		return true
+	} else {
+		return false
 	}
 }
 
@@ -365,7 +384,7 @@ func WithinConnection(pos image.Point, c *model.Connection, ec *EditContext, tol
 	// Add thickness/2 to tolerance for better hit detection
 	hitRadius := tolerance + (c.Thickness*ec.scaleFactor)/2
 
-	if c.Type == model.COVARIANCE {
+	if c.Type == model.CURVED {
 		return utils.WithinArc(pos, posA, posB, c.Curvature, hitRadius, samples)
 	}
 	return utils.WithinLine(pos, posA, posB, hitRadius)
