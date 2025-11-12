@@ -2,5 +2,6 @@
 .Rhistory
 pubSEM.Rproj
 /.Rproj.user/
+/.idea/
 /tools/main
 /tools/test.json
