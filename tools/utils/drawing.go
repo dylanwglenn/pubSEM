@@ -229,6 +229,19 @@ func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
 
 func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, scaleFactor float32, padding float32) (string, LocalDim) {
 	// define the string to be printed
+	estText, dim, textWidth := CalculateEstimate(fontStyle, fontSize, displayStyle, est, pVal, ci, precision, padding)
+
+	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
+
+	// draw text
+	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
+	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
+
+	return estText, dim
+}
+
+func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
+	// define the string to be printed
 	var estText string
 
 	floatFmtStr := "%." + strconv.Itoa(precision) + "f"
@@ -255,13 +268,5 @@ func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font
 	textWidth := GetTextWidth(estText, fontStyle, fontSize)
 	adjWidth := textWidth + padding*3.0
 	height := fontSize * 1.5 // todo: find a better way to determine height of text
-	dim := LocalDim{W: adjWidth, H: height}
-
-	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
-
-	// draw text
-	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
-	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
-
-	return estText, dim
+	return estText, LocalDim{W: adjWidth, H: height}, textWidth
 }

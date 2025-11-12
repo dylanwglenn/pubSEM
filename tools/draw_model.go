@@ -23,7 +23,6 @@ import (
 //                2
 
 func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
-
 	// Reset all node connections every frame
 	for _, n := range m.Nodes {
 		n.EdgeConnections = [4][]*model.Connection{}
