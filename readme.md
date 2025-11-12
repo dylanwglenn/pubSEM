@@ -9,7 +9,7 @@ early stages. See the roadmap below for future plans.
 
 ## Installing
 
-> [!ALERT]
+> [!IMPORTANT]
 > pubSEM requires a recent version of Go for compilation. Go can be installed here: https://go.dev/doc/install
 
 
