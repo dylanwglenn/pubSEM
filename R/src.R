@@ -19,8 +19,12 @@ edit_path_diagram <- function(fit, standardized, project_name) {
     df_fit <- extract_lavaan_params(fit, standardized)
 
     usr_data_dir <- tools::R_user_dir("pkg", which = "data")
-    base_dir <- paste0(base_dir, "/pubSEM/")
+    base_dir <- paste0(usr_data_dir, "/pubSEM/")
     file_path <- paste0(base_dir, "temp.json")
+
+    if (!dir.exists(file.path(base_dir))) {
+        dir.create(file.path(base_dir), recursive = TRUE)
+    }
 
     jsonlite::write_json(df_fit,
         path = file_path,
@@ -28,9 +32,9 @@ edit_path_diagram <- function(fit, standardized, project_name) {
     )
 
     if (Sys.info()['sysname'] == "Windows") {
-        gui_exec_path <- system.file("main.exe", package = "pubSEM")
+        gui_exec_path <- system.file("bin", "diagram_gui.exe", package = "pubSEM", mustWork = TRUE)
     } else {
-        gui_exec_path <- system.file("main", package = "pubSEM")
+        gui_exec_path <- system.file("bin", "diagram_gui", package = "pubSEM", mustWork = TRUE)
     }
 
     # run the GUI executable

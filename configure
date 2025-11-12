@@ -9,11 +9,11 @@ fi
 # Build the Go tool
 echo "Building Go executable..."
 cd tools
-go build -o ../inst/bin/plotool main.go
+go build -o ../inst/bin/diagram_gui
 
 if [ $? -eq 0 ]; then
+    chmod +x ../inst/bin/diagram_gui
     echo "Build successful"
-    chmod +x ../inst/bin/plotool
 else
     echo "Build failed"
     exit 1
