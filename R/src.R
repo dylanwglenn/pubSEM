@@ -15,7 +15,7 @@
 #'   PROJECTS!
 #' @returns nothing
 #' @export
-edit_path_diagram <- function(fit, standardized, project_name) {
+semGui <- function(fit, standardized, project_name) {
     df_fit <- extract_lavaan_params(fit, standardized)
 
     usr_data_dir <- tools::R_user_dir("pkg", which = "data")
