@@ -1,4 +1,4 @@
-# pubSEM -- Publication-Ready Path Diagrams in R
+# pubSEM: Publication-Ready Path Diagrams in R
 
 pubSEM is a tool designed for the easy creation of publication-ready path diagrams. The tool is still in its (very)
 early stages. See the roadmap below for future plans.
