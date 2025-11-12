@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# Check if Go is installed
+if ! command -v go >/dev/null 2>&1; then
+    echo "Error: Go is not installed. Please install Go from https://golang.org/"
+    exit 1
+fi
+
+# Build the Go tool
+echo "Building Go executable..."
+cd tools
+go build -o ../inst/bin/plotool main.go
+
+if [ $? -eq 0 ]; then
+    echo "Build successful"
+    chmod +x ../inst/bin/plotool
+else
+    echo "Build failed"
+    exit 1
+fi
+
+exit 0

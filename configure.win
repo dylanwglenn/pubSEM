@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Windows configure script
+if ! command -v go >/dev/null 2>&1; then
+    echo "Error: Go is not installed."
+    exit 1
+fi
+
+echo "Building Go executable for Windows..."
+cd tools
+go build -o ../inst/bin/plotool.exe main.go
+
+if [ $? -eq 0 ]; then
+    echo "Build successful"
+else
+    echo "Build failed"
+    exit 1
+fi
+
+exit 0
