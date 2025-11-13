@@ -29,6 +29,7 @@ type Node struct {
 	Col             color.NRGBA
 	VarName         string
 	Text            string
+	TextWidth       float32
 	Bold            bool
 	Thickness       float32
 	UserDefined     bool
