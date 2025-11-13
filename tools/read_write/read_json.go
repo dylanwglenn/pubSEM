@@ -38,6 +38,10 @@ func ModelFromJSON(dir string) *model.Model {
 	connections := make([]*model.Connection, 0, len(rows))
 	var i int
 	for _, row := range rows {
+		if !(row.Op == "=~" || row.Op == "~~" || row.Op == "~") {
+			continue
+		}
+
 		lhs, ok := varMap[row.Lhs]
 		if !ok {
 			lhs = new(model.Node)
@@ -79,6 +83,8 @@ func ModelFromJSON(dir string) *model.Model {
 			c.Type = model.STRAIGHT
 			c.Origin = lhs
 			c.Destination = rhs
+		default:
+			continue
 		}
 
 		if row.User == 1 {
@@ -105,6 +111,7 @@ func ModelFromJSON(dir string) *model.Model {
 		varMap[row.Lhs] = lhs
 		varMap[row.Rhs] = rhs
 		// assign connection to array
+
 		connections = append(connections, c)
 	}
 
