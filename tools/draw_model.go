@@ -66,6 +66,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 	// the shortest
 
 	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
 		switch c.Type {
 		case model.STRAIGHT:
 			c.Angle = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
