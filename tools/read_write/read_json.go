@@ -65,6 +65,7 @@ func ModelFromJSON(dir string) *model.Model {
 		c.CI = [2]float64{row.CiLower, row.CiUpper}
 
 		// define connection and node types
+		skip := false
 		switch row.Op {
 		case "=~":
 			lhs.Class = model.LATENT
@@ -79,6 +80,8 @@ func ModelFromJSON(dir string) *model.Model {
 			c.Type = model.STRAIGHT
 			c.Origin = lhs
 			c.Destination = rhs
+		default:
+			skip = true
 		}
 
 		if row.User == 1 {
@@ -105,7 +108,9 @@ func ModelFromJSON(dir string) *model.Model {
 		varMap[row.Lhs] = lhs
 		varMap[row.Rhs] = rhs
 		// assign connection to array
-		connections = append(connections, c)
+		if !skip {
+			connections = append(connections, c)
+		}
 	}
 
 	m := new(model.Model)
