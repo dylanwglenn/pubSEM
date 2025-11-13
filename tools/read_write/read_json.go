@@ -48,13 +48,15 @@ func ModelFromJSON(dir string) *model.Model {
 		lhs, ok := varMap[row.Lhs]
 		if !ok {
 			lhs = new(model.Node)
-			lhs.Pos = utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
+			pos := utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
+			lhs.Pos = utils.SnapToGrid(pos, 20)
 			i++
 		}
 		rhs, ok := varMap[row.Rhs]
 		if !ok {
 			rhs = new(model.Node)
-			rhs.Pos = utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
+			pos := utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
+			rhs.Pos = utils.SnapToGrid(pos, 20)
 			i++
 		}
 
