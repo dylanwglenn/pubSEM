@@ -20,6 +20,8 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+var th *material.Theme = material.NewTheme()
+
 type CoefficientDisplay int
 
 const (
@@ -190,21 +192,21 @@ func DrawArrowHead(ops *op.Ops, basePos GlobalPos, angle float64, size float64, 
 	paint.PaintOp{}.Add(ops)
 }
 
-func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style font.FontFace, size unit.Sp, scale float32) {
+func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style *font.FontFace, size unit.Sp, scale float32) {
 	defer op.Offset(pos.ToImagePnt()).Push(ops).Pop()
 
 	// Apply scale transform
 	defer op.Affine(f32.Affine2D{}.Scale(f32.Point{}, f32.Pt(scale, scale))).Push(ops).Pop()
 
 	// Create a label with the text
-	label := material.Label(material.NewTheme(), size, txt)
+	label := material.Label(th, size, txt)
 	label.Font = style.Font
 
 	// Draw the label
 	label.Layout(gtx)
 }
 
-func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
+func GetTextWidth(txt string, style *font.FontFace, size float32) float32 {
 	shaper := text.NewShaper()
 	params := text.Parameters{
 		Font:    style.Font,
@@ -227,20 +229,17 @@ func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
 	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
 }
 
-func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, scaleFactor float32, padding float32) (string, LocalDim) {
-	// define the string to be printed
-	estText, dim, textWidth := CalculateEstimate(fontStyle, fontSize, displayStyle, est, pVal, ci, precision, padding)
+func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle *font.FontFace, fontSize float32, scaleFactor float32,
+	padding float32, estText string, dim LocalDim, textWidth float32) {
 
 	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
 
 	// draw text
 	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
 	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
-
-	return estText, dim
 }
 
-func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
+func CalculateEstimate(fontStyle *font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
 	// define the string to be printed
 	var estText string
 

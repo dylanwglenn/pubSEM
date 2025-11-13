@@ -50,10 +50,10 @@ type EditContext struct {
 
 func main() {
 	// load in arguments passed into the application call
-	baseDir := os.Args[1]
+	//baseDir := os.Args[1]
 	//projectName := os.Args[2]
 
-	m := read_write.ModelFromJSON(baseDir)
+	m := read_write.ModelFromJSON("")
 	ec := InitEditContext()
 	widgets := InitWidgets(m)
 	th := material.NewTheme()
@@ -119,7 +119,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			case true:
 				DrawModelFixed(ops, gtx, m, ec)
 			case false:
-				DrawModel(ops, gtx, m, ec)
+				DrawModel(ops, gtx, m, ec, ec.draggedNode)
 			}
 
 			// complete the frame event

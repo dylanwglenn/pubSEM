@@ -49,6 +49,7 @@ type Connection struct {
 	EstPos         utils.LocalPos
 	EstDim         utils.LocalDim
 	EstPadding     float32
+	EstWidth       float32
 	AlongLineProp  float32 // how far along the line is the estimate label? defaults to .5
 	Est            float64
 	PValue         float64
@@ -62,12 +63,13 @@ type Connection struct {
 type FontSettings struct {
 	Family string
 	Size   float32
-	Face   font.FontFace
+	Face   *font.FontFace
 }
 
 type Model struct {
 	Nodes         []*Node
 	Connections   []*Connection
+	Network       map[*Node][]*Node
 	Font          FontSettings
 	CoeffDisplay  utils.CoefficientDisplay
 	ViewGenerated bool

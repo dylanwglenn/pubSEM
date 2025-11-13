@@ -22,9 +22,16 @@ import (
 //   ----------------------------
 //                2
 
-func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext, selectedNode *model.Node) {
+	var nodes []*model.Node
+	if selectedNode == nil {
+		nodes = m.Nodes
+	} else {
+		nodes = m.Network[selectedNode]
+	}
+
 	// Reset all node connections every frame
-	for _, n := range m.Nodes {
+	for _, n := range nodes {
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
 		if n.TextWidth == 0 {
@@ -71,9 +78,9 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		AssignToEdges(c)
 	}
 
-	// draw observed nodes
+	// calculate observed nodes
 	// must handle observed before latent to establish positions of connection ends
-	for _, n := range m.Nodes {
+	for _, n := range nodes {
 		switch n.Class {
 		case model.OBSERVED:
 			// handle connections
@@ -150,7 +157,12 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 					}
 				}
 			}
+		}
+	}
 
+	for _, n := range m.Nodes {
+		switch n.Class {
+		case model.OBSERVED:
 			// draw the node itself
 			utils.DrawRect(
 				ops,
@@ -186,6 +198,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 	}
 
 	for _, c := range m.Connections {
+		if c.EstWidth == 0 {
+			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding)
+		}
+
 		if !c.UserDefined && !m.ViewGenerated {
 			continue
 		}
@@ -231,19 +247,17 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 		}
 
 		if m.CoeffDisplay != utils.NONE {
-			c.EstText, c.EstDim = utils.DrawEstimate(
+			utils.DrawEstimate(
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				m.Font.Face,
 				m.Font.Size,
-				m.CoeffDisplay,
-				c.Est,
-				c.PValue,
-				c.CI,
-				decimalPlaces,
 				ec.scaleFactor,
 				c.EstPadding,
+				c.EstText,
+				c.EstDim,
+				c.EstWidth,
 			)
 		}
 	}
@@ -329,19 +343,17 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 		}
 
 		if m.CoeffDisplay != utils.NONE {
-			c.EstText, c.EstDim = utils.DrawEstimate(
+			utils.DrawEstimate(
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				m.Font.Face,
 				m.Font.Size,
-				m.CoeffDisplay,
-				c.Est,
-				c.PValue,
-				c.CI,
-				decimalPlaces,
 				ec.scaleFactor,
 				c.EstPadding,
+				c.EstText,
+				c.EstDim,
+				c.EstWidth,
 			)
 		}
 	}

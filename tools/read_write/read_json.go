@@ -124,16 +124,35 @@ func ModelFromJSON(dir string) *model.Model {
 	m.CoeffDisplay = utils.STAR
 	m.Connections = connections
 	m.Nodes = utils.MapValsToSlice(varMap)
+	m.Network = CalculateNodeNetwork(connections)
 
 	return m
+}
+
+func CalculateNodeNetwork(connections []*model.Connection) map[*model.Node][]*model.Node {
+	res := make(map[*model.Node][]*model.Node)
+	for _, c := range connections {
+		if res[c.Origin] == nil {
+			res[c.Origin] = make([]*model.Node, 0)
+			res[c.Origin] = append(res[c.Origin], c.Origin)
+		}
+		if res[c.Destination] == nil {
+			res[c.Destination] = make([]*model.Node, 0)
+			res[c.Destination] = append(res[c.Destination], c.Destination)
+		}
+
+		res[c.Origin] = append(res[c.Origin], c.Destination)
+		res[c.Destination] = append(res[c.Destination], c.Origin)
+	}
+	return res
 }
 
 func readJSON(dir string) []DataRow {
 	// read the json file
 	var rows []DataRow
 
-	data, err := os.ReadFile(dir + "/temp.json")
-	//data, err := os.ReadFile("test.json") // testing
+	//data, err := os.ReadFile(dir + "/temp.json")
+	data, err := os.ReadFile("test.json") // testing
 	if err != nil {
 		log.Fatal(err)
 	}
