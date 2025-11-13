@@ -6,6 +6,8 @@ import (
 	"log"
 	"main/model"
 	"main/utils"
+	"math"
+	"math/rand"
 	"os"
 )
 
@@ -36,6 +38,7 @@ func ModelFromJSON(dir string) *model.Model {
 	// translate data to model type
 	varMap := make(map[string]*model.Node)
 	connections := make([]*model.Connection, 0, len(rows))
+	randMag := float32(2000)
 	var i int
 	for _, row := range rows {
 		if !(row.Op == "=~" || row.Op == "~~" || row.Op == "~") {
@@ -45,13 +48,13 @@ func ModelFromJSON(dir string) *model.Model {
 		lhs, ok := varMap[row.Lhs]
 		if !ok {
 			lhs = new(model.Node)
-			lhs.Pos = utils.LocalPos{X: float32(i * 100)}
+			lhs.Pos = utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
 			i++
 		}
 		rhs, ok := varMap[row.Rhs]
 		if !ok {
 			rhs = new(model.Node)
-			rhs.Pos = utils.LocalPos{X: float32(i * 100)}
+			rhs.Pos = utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
 			i++
 		}
 
@@ -126,6 +129,8 @@ func ModelFromJSON(dir string) *model.Model {
 	m.Nodes = utils.MapValsToSlice(varMap)
 	m.Network = CalculateNodeNetwork(connections)
 
+	forceDirectNodes(m)
+
 	return m
 }
 
@@ -147,12 +152,93 @@ func CalculateNodeNetwork(connections []*model.Connection) map[*model.Node][]*mo
 	return res
 }
 
+func forceDirectNodes(m *model.Model) {
+	// see https://i11www.iti.kit.edu/_media/teaching/winter2016/graphvis/graphvis-ws16-v6.pdf
+	var idealSpringLength float64 = 10
+	var repelForce float32 = .8
+	var attractForce float32 = .7
+	var temperature float32 = 150.0 // Initial max movement, "cools" over time
+	var coolingFactor float32 = 0.99
+
+	funcRepel := func(a, b utils.LocalPos) utils.LocalPos {
+		dist := utils.DistLoc(a, b)
+		vec := utils.UnitVector(a, b)
+		return vec.Mul(-repelForce / (dist * dist))
+	}
+
+	funAttract := func(a, b utils.LocalPos) utils.LocalPos {
+		dist := utils.DistLoc(a, b)
+		vec := utils.UnitVector(a, b)
+		return vec.Mul(attractForce * float32(math.Log(float64(dist)/idealSpringLength)))
+	}
+
+	// sore the net displacement for each node per iteration
+	displacements := make(map[*model.Node]utils.LocalPos)
+	for i := 0; i < 10; i++ {
+		// Every node repels every other node
+		for j := 0; j < len(m.Nodes); j++ {
+			for k := j + 1; k < len(m.Nodes); k++ {
+				u := m.Nodes[j]
+				v := m.Nodes[k]
+
+				// Calculate the repulsive force vector
+				repelVec := funcRepel(u.Pos, v.Pos)
+
+				// Apply force to both nodes (Newton's 3rd Law)
+				displacements[u] = displacements[u].Add(repelVec)
+				displacements[v] = displacements[v].Sub(repelVec) // Equal and opposite
+			}
+		}
+
+		// Calculate Attractive Forces (Edges-Only)
+		for _, conn := range m.Connections {
+			u := conn.Origin
+			v := conn.Destination
+
+			if u == nil || v == nil {
+				continue // Skip invalid connections
+			}
+
+			if u == v {
+				continue
+			}
+
+			// Calculate the attractive/repulsive spring force vector
+			attractVec := funAttract(u.Pos, v.Pos)
+
+			// Apply force to both nodes
+			displacements[u] = displacements[u].Add(attractVec)
+			displacements[v] = displacements[v].Sub(attractVec) // Equal and opposite
+		}
+
+		// Update Node Positions
+		// Apply the calculated displacements, capped by the current temperature
+		for _, node := range m.Nodes {
+			disp := displacements[node]
+			dispMag := utils.DistLoc(displacements[node], utils.LocalPos{0, 0})
+
+			// Don't let the node move further than the current temperature
+			if dispMag > temperature {
+				// Scale the displacement vector down to match the temperature
+				disp = disp.Div(dispMag).Mul(temperature)
+			}
+
+			// Apply the final displacement to the node's position
+			node.Pos = node.Pos.Add(disp)
+		}
+
+		// 5. Cool the temperature
+		// This makes the layout stabilize over time
+		temperature *= coolingFactor
+	}
+}
+
 func readJSON(dir string) []DataRow {
 	// read the json file
 	var rows []DataRow
 
-	//data, err := os.ReadFile(dir + "/temp.json")
-	data, err := os.ReadFile("test.json") // testing
+	data, err := os.ReadFile(dir + "/temp.json")
+	//data, err := os.ReadFile("test.json") // testing
 	if err != nil {
 		log.Fatal(err)
 	}

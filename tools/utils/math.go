@@ -44,3 +44,7 @@ func MoveAlongBezier(a, b, ctrl f32.Point, t float32) LocalPos {
 
 	return LocalPos{X: x, Y: y}
 }
+
+func UnitVector(a, b LocalPos) LocalPos {
+	return LocalPos{X: b.X - a.X, Y: b.Y - a.Y}
+}
