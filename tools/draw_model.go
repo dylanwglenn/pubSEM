@@ -23,15 +23,8 @@ import (
 //                2
 
 func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext, selectedNode *model.Node) {
-	var nodes []*model.Node
-	if selectedNode == nil {
-		nodes = m.Nodes
-	} else {
-		nodes = m.Network[selectedNode]
-	}
-
 	// Reset all node connections every frame
-	for _, n := range nodes {
+	for _, n := range m.Nodes {
 		if !n.Visible {
 			continue
 		}
@@ -88,7 +81,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 
 	// calculate observed nodes
 	// must handle observed before latent to establish positions of connection ends
-	for _, n := range nodes {
+	for _, n := range m.Nodes {
 		if !n.Visible {
 			continue
 		}
@@ -104,43 +97,39 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 				}
 
 				// sort connections based on angle
-				angles := make([]float64, len(connections))
-				for i, c := range connections {
+				angleMap := make(map[*model.Connection]float64, len(connections))
+				for _, c := range connections {
 					switch c.Type {
 					case model.STRAIGHT:
 						if c.Destination == n {
-							angles[i] = c.Angle
+							angleMap[c] = c.Angle
 						}
 						if c.Origin == n {
-							angles[i] = utils.NormalizeAngle(c.Angle + math.Pi)
+							angleMap[c] = utils.NormalizeAngle(c.Angle + math.Pi)
 						}
 					case model.CURVED:
 						if c.Origin == n {
-							angles[i] = utils.GetAngleLoc(c.Destination.Pos, c.Origin.Pos)
+							angleMap[c] = utils.GetAngleLoc(c.Destination.Pos, c.Origin.Pos)
 						}
 						if c.Destination == n {
-							angles[i] = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
+							angleMap[c] = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
 						}
 					}
 				}
 
 				// do the sorting
 				// edge 3 is a special case, since the angle values wrap around from 2Pi to 0
-				switch {
-				case e == 3:
-					for i := range angles {
-						if angles[i] < math.Pi {
-							angles[i] += 2 * math.Pi
+				if e == 3 {
+					for k, v := range angleMap {
+						if v < math.Pi {
+							angleMap[k] += 2 * math.Pi
 						}
 					}
-					sort.Slice(connections, func(i, j int) bool {
-						return angles[i] < angles[j]
-					})
-				default:
-					sort.Slice(connections, func(i, j int) bool {
-						return angles[i] < angles[j]
-					})
 				}
+
+				sort.Slice(connections, func(i, j int) bool {
+					return angleMap[connections[i]] < angleMap[connections[j]]
+				})
 
 				edgePoints := SubdivideNodeEdge(n, e, len(connections))
 
@@ -214,12 +203,12 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 	}
 
 	for _, c := range m.Connections {
-		if c.EstWidth == 0 {
-			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding)
-		}
-
 		if !c.UserDefined && !m.ViewGenerated {
 			continue
+		}
+
+		if c.EstWidth == 0 {
+			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding)
 		}
 
 		if c.Origin.Class == model.LATENT {
