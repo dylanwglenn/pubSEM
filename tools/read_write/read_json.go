@@ -103,8 +103,8 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 			c.Destination = rhs
 		case "~":
 			c.Type = model.STRAIGHT
-			c.Origin = lhs
-			c.Destination = rhs
+			c.Origin = rhs
+			c.Destination = lhs
 		default:
 			continue
 		}
