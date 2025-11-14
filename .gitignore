@@ -5,3 +5,4 @@ pubSEM.Rproj
 /.idea/
 /tools/main
 /tools/test.json
+/inst/bin/
