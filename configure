@@ -9,10 +9,10 @@ fi
 # Build the Go tool
 echo "Building Go executable..."
 cd tools
-go build -o ../inst/bin/diagram_gui
+go build -o ../inst/bin/sem_gui
 
 if [ $? -eq 0 ]; then
-    chmod +x ../inst/bin/diagram_gui
+    chmod +x ../inst/bin/sem_gui
     echo "Build successful"
 else
     echo "Build failed"

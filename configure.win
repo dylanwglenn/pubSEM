@@ -8,7 +8,7 @@ fi
 
 echo "Building Go executable for Windows..."
 cd tools
-go build -o ../inst/bin/diagram_gui.exe
+go build -o ../inst/bin/sem_gui.exe
 
 if [ $? -eq 0 ]; then
     echo "Build successful"

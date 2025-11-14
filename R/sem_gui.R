@@ -11,16 +11,15 @@
 #' @param standardized A bool value
 #' @param project_name A string denoting the name of the pubSEM project to which
 #'   a layout should be stored. A project file stores persistent data for
-#'   reproducible diagrams — project names should be unique EVEN ACROSS R
-#'   PROJECTS!
+#'   reproducible diagrams in the current working directoloadry — project names
+#'   should be unique EVEN ACROSS R PROJECTS!
 #' @returns nothing
 #' @export
-semGui <- function(fit, standardized, project_name) {
+sem_gui <- function(fit, project_name, standardized = FALSE) {
     df_fit <- extract_lavaan_params(fit, standardized)
 
-    usr_data_dir <- tools::R_user_dir("pkg", which = "data")
-    base_dir <- paste0(usr_data_dir, "/pubSEM/")
-    file_path <- paste0(base_dir, "temp.json")
+    base_dir <- tools::R_user_dir("pubSEM", which = "data")
+    file_path <- file.path(base_dir, "temp.json")
 
     if (!dir.exists(file.path(base_dir))) {
         dir.create(file.path(base_dir), recursive = TRUE)
@@ -32,14 +31,14 @@ semGui <- function(fit, standardized, project_name) {
     )
 
     if (Sys.info()['sysname'] == "Windows") {
-        gui_exec_path <- system.file("bin", "diagram_gui.exe", package = "pubSEM", mustWork = TRUE)
+        gui_exec_path <- system.file("bin", "sem_gui.exe", package = "pubSEM", mustWork = TRUE)
     } else {
-        gui_exec_path <- system.file("bin", "diagram_gui", package = "pubSEM", mustWork = TRUE)
+        gui_exec_path <- system.file("bin", "sem_gui", package = "pubSEM", mustWork = TRUE)
     }
 
     # run the GUI executable
     system2(gui_exec_path,
-            args = c(base_dir, project_name)
+            args = c(base_dir, project_name, "edit")
     )
 }
 
@@ -55,7 +54,7 @@ extract_lavaan_params <- function(fit, standardized) {
     } else {
         df_estimates <- lavaan::parameterestimates(fit)
     }
-
+#
     # select desired columns from fit data
     df_paramTable_filtered <- df_paramTable[, c("lhs",
                                                 "op",

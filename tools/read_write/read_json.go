@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"path/filepath"
 )
 
 const (
@@ -30,13 +31,27 @@ type DataRow struct {
 	CiUpper float64 `json:"ci_upper"`
 }
 
-func ModelFromJSON(dir string) *model.Model {
-	// TODO: Check for existing layout
+func ModelFromJSON(dir, projectName string) *model.Model {
+	m := new(model.Model)
+	// Check for existing project
+	projPath := filepath.Join(dir, projectName+".json")
+	loadedProj := false
+	if mExisting, err := LoadProject(projPath); err == nil {
+		m = mExisting
+		loadedProj = true
+	}
 
-	rows := readJSON(dir)
+	tempPath := filepath.Join(dir, "temp.json")
+	rows := readJSON(tempPath)
 
 	// translate data to model type
 	varMap := make(map[string]*model.Node)
+
+	// account for existing nodes from project
+	for _, n := range m.Nodes {
+		varMap[n.VarName] = n
+	}
+
 	connections := make([]*model.Connection, 0, len(rows))
 	randMag := float32(2000)
 	var i int
@@ -50,6 +65,7 @@ func ModelFromJSON(dir string) *model.Model {
 			lhs = new(model.Node)
 			pos := utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
 			lhs.Pos = utils.SnapToGrid(pos, 20)
+			lhs.Col = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 			i++
 		}
 		rhs, ok := varMap[row.Rhs]
@@ -57,6 +73,7 @@ func ModelFromJSON(dir string) *model.Model {
 			rhs = new(model.Node)
 			pos := utils.LocalPos{X: (rand.Float32() - .5) * randMag, Y: (rand.Float32() - .5) * randMag}
 			rhs.Pos = utils.SnapToGrid(pos, 20)
+			rhs.Col = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 			i++
 		}
 
@@ -120,7 +137,6 @@ func ModelFromJSON(dir string) *model.Model {
 		connections = append(connections, c)
 	}
 
-	m := new(model.Model)
 	m.Font = model.FontSettings{
 		Family: "sans",
 		Size:   16,
@@ -131,7 +147,9 @@ func ModelFromJSON(dir string) *model.Model {
 	m.Nodes = utils.MapValsToSlice(varMap)
 	m.Network = CalculateNodeNetwork(connections)
 
-	forceDirectNodes(m)
+	if !loadedProj {
+		forceDirectNodes(m)
+	}
 
 	return m
 }
@@ -235,11 +253,11 @@ func forceDirectNodes(m *model.Model) {
 	}
 }
 
-func readJSON(dir string) []DataRow {
+func readJSON(path string) []DataRow {
 	// read the json file
 	var rows []DataRow
 
-	data, err := os.ReadFile(dir + "/temp.json")
+	data, err := os.ReadFile(path)
 	//data, err := os.ReadFile("test.json") // testing
 	if err != nil {
 		log.Fatal(err)

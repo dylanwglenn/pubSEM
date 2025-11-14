@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"log"
 	"main/model"
@@ -8,6 +9,7 @@ import (
 	"main/read_write"
 	"main/utils"
 	"os"
+	"path/filepath"
 
 	"gioui.org/app"
 	"gioui.org/io/event"
@@ -51,9 +53,21 @@ type EditContext struct {
 func main() {
 	// load in arguments passed into the application call
 	baseDir := os.Args[1]
-	//projectName := os.Args[2]
+	projectName := os.Args[2]
+	action := os.Args[3]
 
-	m := read_write.ModelFromJSON(baseDir)
+	if action == "export" {
+		fp := os.Args[4]
+		m, err := read_write.LoadProject(filepath.Join(baseDir, projectName+".json"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		pdf.ExportModel(m, fp)
+		fmt.Println("Successfully exported PDF")
+		return
+	}
+
+	m := read_write.ModelFromJSON(baseDir, projectName)
 	ec := InitEditContext()
 	widgets := InitWidgets(m)
 	th := material.NewTheme()
@@ -66,7 +80,7 @@ func main() {
 		w := new(app.Window)
 		w.Option(app.Title("Pub SEM"))
 		w.Option(app.Size(unit.Dp(startingWidth), unit.Dp(startingHeight)))
-		if err := loop(w, th, m, ec, widgets); err != nil {
+		if err := loop(w, th, m, ec, widgets, baseDir, projectName); err != nil {
 			log.Fatal(err)
 		}
 		os.Exit(0)
@@ -74,7 +88,7 @@ func main() {
 	app.Main()
 }
 
-func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, widgets ModelWidgets) error {
+func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, widgets ModelWidgets, baseDir, projectName string) error {
 	ops := new(op.Ops)
 
 	// listen for events in the window.
@@ -112,7 +126,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 
 			RightClick(ops, gtx, m, ec, widgets)
 
-			CtrlPress(ops, gtx, m)
+			CtrlPress(ops, gtx, m, baseDir, projectName)
 
 			// draw the model
 			switch ec.lazyUpdate {
@@ -132,7 +146,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 	}
 }
 
-func CtrlPress(ops *op.Ops, gtx layout.Context, m *model.Model) {
+func CtrlPress(ops *op.Ops, gtx layout.Context, m *model.Model, baseDir, projectName string) {
 	event.Op(ops, ctrlPressTag)
 
 	for {
@@ -150,8 +164,8 @@ func CtrlPress(ops *op.Ops, gtx layout.Context, m *model.Model) {
 			}
 			switch evt.Name {
 			case "S":
-				pdf.ExportModel(m, "test_exports/test.pdf")
-				println("successfully saved model to PDF")
+				read_write.SaveProject(m, filepath.Join(baseDir, projectName+".json"))
+				println("successfully saved project")
 			}
 		}
 	}

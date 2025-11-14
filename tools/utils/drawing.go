@@ -192,7 +192,7 @@ func DrawArrowHead(ops *op.Ops, basePos GlobalPos, angle float64, size float64, 
 	paint.PaintOp{}.Add(ops)
 }
 
-func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style *font.FontFace, size unit.Sp, scale float32) {
+func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style font.FontFace, size unit.Sp, scale float32) {
 	defer op.Offset(pos.ToImagePnt()).Push(ops).Pop()
 
 	// Apply scale transform
@@ -206,7 +206,7 @@ func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style 
 	label.Layout(gtx)
 }
 
-func GetTextWidth(txt string, style *font.FontFace, size float32) float32 {
+func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
 	shaper := text.NewShaper()
 	params := text.Parameters{
 		Font:    style.Font,
@@ -229,7 +229,7 @@ func GetTextWidth(txt string, style *font.FontFace, size float32) float32 {
 	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
 }
 
-func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle *font.FontFace, fontSize float32, scaleFactor float32,
+func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, scaleFactor float32,
 	padding float32, estText string, dim LocalDim, textWidth float32) {
 
 	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
@@ -239,7 +239,7 @@ func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle *fon
 	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
 }
 
-func CalculateEstimate(fontStyle *font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
+func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
 	// define the string to be printed
 	var estText string
 

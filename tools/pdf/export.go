@@ -2,9 +2,12 @@ package pdf
 
 import "C"
 import (
+	"embed"
 	"image/color"
 	"main/model"
 	"main/utils"
+	"os"
+	"path/filepath"
 
 	"github.com/jung-kurt/gofpdf"
 )
@@ -14,16 +17,22 @@ const (
 	ppRatio    = .75 // pixel-to-point conversion
 )
 
+//go:embed "gofpdf_fonts"
+var pdfFontFS embed.FS
+
 func ExportModel(m *model.Model, filePath string) {
 	rect, localDim := GetModelSize(m)
 
 	pageWidth := localDim.W*ppRatio + 2*docPadding
 	pageHeight := localDim.H*ppRatio + 2*docPadding
 
+	fontDir := createTempFontDir()
+	defer os.RemoveAll(fontDir)
+
 	pdf := gofpdf.NewCustom(&gofpdf.InitType{
 		UnitStr:    "pt",
 		Size:       gofpdf.SizeType{Wd: float64(pageWidth), Ht: float64(pageHeight)},
-		FontDirStr: "./utils/fonts/gofpdf_fonts",
+		FontDirStr: fontDir,
 	})
 	pdf.SetAutoPageBreak(false, 0) // required to avoid automatic page breaks at different text sizes
 	utils.LoadPdfFonts(pdf)
@@ -138,4 +147,33 @@ func GetModelSize(m *model.Model) (rect [2]utils.LocalPos, dim utils.LocalDim) {
 	}
 
 	return
+}
+
+func createTempFontDir() string {
+	tempDir, err := os.MkdirTemp("", "gofpdf_fonts_*")
+	if err != nil {
+		panic(err)
+	}
+
+	fontFiles, err := pdfFontFS.ReadDir("gofpdf_fonts")
+	if err != nil {
+		panic(err)
+	}
+	for _, f := range fontFiles {
+		if f.IsDir() {
+			continue
+		}
+
+		data, err := pdfFontFS.ReadFile(filepath.Join("gofpdf_fonts", f.Name()))
+		if err != nil {
+			panic(err)
+		}
+
+		err = os.WriteFile(filepath.Join(tempDir, f.Name()), data, 0644)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	return tempDir
 }
