@@ -4,6 +4,7 @@ import (
 	"main/model"
 	"main/utils"
 	"math"
+	"slices"
 	"sort"
 
 	"gioui.org/layout"
@@ -76,7 +77,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 			c.Angle = utils.NormalizeAngle(angle)
 		}
 
-		AssignToEdges(c)
+		AssignToEdges(c, m.Nodes)
 	}
 
 	// calculate observed nodes
@@ -372,16 +373,17 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 	}
 }
 
-func AssignToEdges(c *model.Connection) {
+func AssignToEdges(c *model.Connection, nodes []*model.Node) {
 	switch {
 	case c.Origin.Class == model.OBSERVED && c.Destination.Class == model.LATENT:
-		edge := AngleToEdge(c.Angle)
-		c.Origin.EdgeConnections[edge] = append(c.Origin.EdgeConnections[edge], c)
+		candidateOriginEdges := GetCandidateDestEdges(InvertAngle(c))
+		edgeOrigin := GetBestEdge(candidateOriginEdges, c.Origin, c.Destination, c.Destination.Pos, nodes)
+		c.Origin.EdgeConnections[edgeOrigin] = append(c.Origin.EdgeConnections[edgeOrigin], c)
 
 	case c.Origin.Class == model.LATENT && c.Destination.Class == model.OBSERVED:
-		angle := InvertAngle(c)
-		edge := AngleToEdge(angle)
-		c.Destination.EdgeConnections[edge] = append(c.Destination.EdgeConnections[edge], c)
+		candidateOriginEdges := GetCandidateDestEdges(c.Angle)
+		edgeDest := GetBestEdge(candidateOriginEdges, c.Destination, c.Origin, c.Origin.Pos, nodes)
+		c.Destination.EdgeConnections[edgeDest] = append(c.Destination.EdgeConnections[edgeDest], c)
 
 	case c.Origin.Class == model.OBSERVED && c.Destination.Class == model.OBSERVED:
 		// assign origin edge like normal
@@ -393,15 +395,19 @@ func AssignToEdges(c *model.Connection) {
 		angleIntermediate := utils.GetAngleLoc(edgePoint, c.Destination.Pos)
 
 		candidateDestEdges := GetCandidateDestEdges(angleIntermediate)
-		edgeDest := GetBestEdge(candidateDestEdges, c.Destination, edgePoint)
+		edgeDest := GetBestEdge(candidateDestEdges, c.Destination, c.Origin, edgePoint, nodes)
 		c.Destination.EdgeConnections[edgeDest] = append(c.Destination.EdgeConnections[edgeDest], c)
 	}
 
 }
 
-func GetBestEdge(candidateEdges []int, destNode *model.Node, originEdgePoint utils.LocalPos) int {
+func GetBestEdge(candidateEdges []int, destNode, originNode *model.Node, originEdgePoint utils.LocalPos, nodes []*model.Node) int {
 	// best edge is defined as the edge where the line angle is maximally different from
 	// the edge angle (the edge angle being either flat or 90* based on the edge)
+	// OR
+	// the edge that does not intersect another node
+
+	intersections := make([]bool, 2)
 	angles := make([]float64, 2)
 	for i, edge := range candidateEdges {
 		destEdgePoint := SubdivideNodeEdge(destNode, edge, 1)[0]
@@ -412,6 +418,15 @@ func GetBestEdge(candidateEdges []int, destNode *model.Node, originEdgePoint uti
 		case edge == 1 || edge == 3:
 			angles[i] = math.Abs(math.Cos(angle))
 		}
+
+		intersections[i] = checkIntersection(originEdgePoint, destEdgePoint, nodes, []*model.Node{destNode, originNode})
+	}
+
+	switch {
+	case intersections[0] && !intersections[1]:
+		return candidateEdges[1]
+	case !intersections[0] && intersections[1]:
+		return candidateEdges[0]
 	}
 
 	// find the largest difference
@@ -515,4 +530,22 @@ func SubdivideNodeEdge(n *model.Node, edge, numPoints int) []utils.LocalPos {
 	}
 
 	return res
+}
+
+func checkIntersection(originPos, destPos utils.LocalPos, nodes, exclusion []*model.Node) bool {
+	for _, n := range nodes {
+		if slices.Contains(exclusion, n) {
+			continue
+		}
+
+		nodeRect := utils.LocalRect{
+			NW: n.Pos.SubDim(n.Dim.Div(2)),
+			SE: n.Pos.AddDim(n.Dim.Div(2)),
+		}
+
+		if utils.SegmentIntersectsRect(originPos, destPos, nodeRect) {
+			return true
+		}
+	}
+	return false
 }

@@ -20,6 +20,11 @@ type GlobalPos struct {
 	X, Y int
 }
 
+type LocalRect struct {
+	NW LocalPos
+	SE LocalPos
+}
+
 func DistLoc(a, b LocalPos) float32 {
 	return float32(math.Sqrt(math.Pow(float64(b.X-a.X), 2) + math.Pow(float64(b.Y-a.Y), 2)))
 }
@@ -150,4 +155,30 @@ func (gPos GlobalPos) ToImagePnt() image.Point {
 
 func ToGlobalPos(pt image.Point) GlobalPos {
 	return GlobalPos{X: pt.X, Y: pt.Y}
+}
+
+func (r LocalRect) Contains(pos LocalPos) bool {
+	if pos.X >= r.NW.X && pos.X <= r.SE.X &&
+		pos.Y >= r.NW.Y && pos.Y <= r.SE.Y {
+		return true
+	}
+	return false
+}
+
+func (r LocalRect) Intersects(b LocalRect) bool {
+	return r.NW.X <= b.SE.X && r.SE.X >= b.NW.X &&
+		r.NW.Y <= b.SE.Y && r.SE.Y >= b.NW.Y
+}
+
+func (r LocalRect) Expand(x float32) LocalRect {
+	return LocalRect{
+		NW: LocalPos{
+			X: r.NW.X - x,
+			Y: r.NW.Y - x,
+		},
+		SE: LocalPos{
+			X: r.SE.X + x,
+			Y: r.SE.Y + x,
+		},
+	}
 }
