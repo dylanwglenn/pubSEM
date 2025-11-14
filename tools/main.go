@@ -129,10 +129,10 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			CtrlPress(ops, gtx, m, baseDir, projectName)
 
 			// draw the model
-			switch ec.lazyUpdate {
-			case true:
+			switch {
+			case ec.lazyUpdate:
 				DrawModelFixed(ops, gtx, m, ec)
-			case false:
+			default:
 				DrawModel(ops, gtx, m, ec, ec.draggedNode)
 			}
 
@@ -196,9 +196,6 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 				// check if clicking a node
 				for _, n := range m.Nodes {
-					if ec.draggedNode != nil {
-						break
-					}
 
 					rect := utils.MakeRect(
 						n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
@@ -258,7 +255,6 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				} else if c := ec.draggedConnection; c != nil {
 					newCursorPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.dragOffset)
 					// project the new cursor position along the connection line
-					// todo: accurately move along a curved line (maybe)
 					_, c.AlongLineProp = utils.ProjectOntoLine(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), newCursorPos.ToF32())
 				} else { // if not dragging a node, then pan
 					ec.lazyUpdate = true
