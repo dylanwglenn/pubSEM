@@ -21,16 +21,20 @@ remotes::install_github("dylanwglenn/pubSEM")
 > pubSEM is designed only for plotting the output of lavaan models. If you want to interactively create lavaan models by
 > visually connecting nodes, try the wonderful [lavaangui](https://github.com/karchjd/lavaangui/).
 
-To use pubSEM, first create a diagram layout from a fitted lavaan model.
+To use pubSEM, first create a diagram layout from a fitted lavaan model using the GUI.
 
 ```r
 pubSEM::sem_gui(fit = lavaan_fit, layout_name = "my-layout", standardized = FALSE) 
 ```
 
-When you first see your model, it will be laid out essentially at random. Click and drag the nodes to arrange the
+When you first see your model it will be laid out essentially at random. Click and drag the nodes to arrange the
 diagram as you would like. **Be sure to press "ctrl/cmd-S" to save your layout!**
 
-To export your diagram to PDF, use the `export_diagram` function.
+Once the layout is saved, feel free to add/remove variables from your lavaan model, or change the model structure
+altogether. As long as you use the same layout, all your node positions will be remembered.
+
+To export your diagram to a PDF, use the `export_diagram` function.
+
 ```r
 pubSEM::export_diagram(layout_name = "my-layout", filename = "my-awsome-path-diagram")
 ```
@@ -69,6 +73,7 @@ CRAN understandably makes it difficult to distribute pre-built executables as pa
 will live only on GitHub for the foreseeable future.
 
 ## Roadmap
+
 - [ ] Proper toolbar
 - [ ] Customization of covariance curves
 - [ ] Multiple node selection
