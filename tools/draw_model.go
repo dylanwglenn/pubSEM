@@ -329,15 +329,6 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 			continue
 		}
 
-		if c.Origin.Class == model.LATENT {
-			angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
-			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
-		}
-		if c.Destination.Class == model.LATENT {
-			angleToLatent := utils.GetAngleLoc(c.OriginPos, c.Destination.Pos)
-			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
-		}
-
 		switch c.Type {
 		case model.STRAIGHT:
 			utils.DrawArrowLine(

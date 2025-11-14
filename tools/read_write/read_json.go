@@ -169,8 +169,12 @@ func CalculateNodeNetwork(connections []*model.Connection) map[*model.Node][]*mo
 			res[c.Destination] = append(res[c.Destination], c.Destination)
 		}
 
-		res[c.Origin] = append(res[c.Origin], c.Destination)
-		res[c.Destination] = append(res[c.Destination], c.Origin)
+		if c.Destination.Visible {
+			res[c.Origin] = append(res[c.Origin], c.Destination)
+		}
+		if c.Origin.Visible {
+			res[c.Destination] = append(res[c.Destination], c.Origin)
+		}
 	}
 	return res
 }
