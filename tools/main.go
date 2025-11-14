@@ -73,7 +73,7 @@ func main() {
 	th := material.NewTheme()
 
 	// testing
-	decimalPlaces = 2
+	decimalPlaces = 2 //todo: allow changing of decimal placess
 
 	go func() {
 		// create new window
