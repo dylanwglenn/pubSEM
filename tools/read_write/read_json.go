@@ -79,6 +79,9 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 
 		c := new(model.Connection)
 
+		lhs.Visible = true
+		rhs.Visible = true
+
 		// set var names (init to be same as text for now)
 		lhs.VarName = row.Lhs
 		rhs.VarName = row.Rhs

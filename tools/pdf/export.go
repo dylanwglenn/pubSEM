@@ -44,6 +44,10 @@ func ExportModel(m *model.Model, filePath string) {
 	offsetY := docPadding - rect[0].Y
 
 	for _, n := range m.Nodes {
+		if !n.Visible {
+			continue
+		}
+
 		// Convert center position to top-left corner
 		adjPos := utils.LocalPos{
 			X: (n.Pos.X - n.Dim.W/2 + offsetX) * ppRatio,

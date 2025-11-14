@@ -32,6 +32,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 
 	// Reset all node connections every frame
 	for _, n := range nodes {
+		if !n.Visible {
+			continue
+		}
+
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
 		if n.TextWidth == 0 {
@@ -85,6 +89,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 	// calculate observed nodes
 	// must handle observed before latent to establish positions of connection ends
 	for _, n := range nodes {
+		if !n.Visible {
+			continue
+		}
+
 		switch n.Class {
 		case model.OBSERVED:
 			// handle connections
@@ -165,6 +173,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 	}
 
 	for _, n := range m.Nodes {
+		if !n.Visible {
+			continue
+		}
+
 		switch n.Class {
 		case model.OBSERVED:
 			// draw the node itself
@@ -277,6 +289,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 // DrawModelFixed is a faster function for lazyUpdate the view. It does not update local positions
 func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
 	for _, n := range m.Nodes {
+		if !n.Visible {
+			continue
+		}
+
 		switch n.Class {
 		case model.OBSERVED:
 			utils.DrawRect(

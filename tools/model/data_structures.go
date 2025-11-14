@@ -33,31 +33,32 @@ type Node struct {
 	Bold            bool             `json:"bold,omitempty"`
 	Thickness       float32          `json:"thickness,omitempty"`
 	UserDefined     bool             `json:"user_defined,omitempty"`
+	Visible         bool             `json:"visible,omitempty"`
 	EdgeConnections [4][]*Connection `json:"-"` // only applicable for rectangular nodes
 	Padding         float32          `json:"padding,omitempty"`
 }
 
 type Connection struct {
-	Origin         *Node          `json:"origin,omitempty" :"origin" :"origin"`
-	Destination    *Node          `json:"destination,omitempty" :"destination" :"destination"`
-	OriginPos      utils.LocalPos `json:"origin_pos" :"origin_pos" :"origin_pos"`
-	DestinationPos utils.LocalPos `json:"destination_pos" :"destination_pos" :"destination_pos"`
-	Angle          float64        `json:"angle,omitempty" :"angle" :"angle"`
-	Col            color.NRGBA    `json:"col" :"col" :"col"`
-	Thickness      float32        `json:"thickness,omitempty" :"thickness" :"thickness"`
-	Type           ConnectionType `json:"type,omitempty" :"type" :"type"`
-	EstPos         utils.LocalPos `json:"est_pos" :"est_pos" :"est_pos"`
-	EstDim         utils.LocalDim `json:"est_dim" :"est_dim" :"est_dim"`
-	EstPadding     float32        `json:"est_padding,omitempty" :"est_padding" :"est_padding"`
-	EstWidth       float32        `json:"est_width,omitempty" :"est_width" :"est_width"`
-	AlongLineProp  float32        `json:"along_line_prop,omitempty" :"along_line_prop" :"along_line_prop"` // how far along the line is the estimate label? defaults to .5
-	Est            float64        `json:"est,omitempty" :"est" :"est"`
-	PValue         float64        `json:"p_value,omitempty" :"p_value" :"p_value"`
-	CI             [2]float64     `json:"ci,omitempty" :"ci" :"ci"`
-	EstText        string         `json:"est_text,omitempty" :"est_text" :"est_text"`
-	Bold           bool           `json:"bold,omitempty" :"bold" :"bold"`
-	Curvature      float32        `json:"curvature,omitempty" :"curvature" :"curvature"` // only applicable for covariance (curved) connections
-	UserDefined    bool           `json:"user_defined,omitempty" :"user_defined" :"user_defined"`
+	Origin         *Node          `json:"origin,omitempty"`
+	Destination    *Node          `json:"destination,omitempty"`
+	OriginPos      utils.LocalPos `json:"origin_pos"`
+	DestinationPos utils.LocalPos `json:"destination_pos"`
+	Angle          float64        `json:"angle,omitempty"`
+	Col            color.NRGBA    `json:"col"`
+	Thickness      float32        `json:"thickness,omitempty"`
+	Type           ConnectionType `json:"type,omitempty"`
+	EstPos         utils.LocalPos `json:"est_pos"`
+	EstDim         utils.LocalDim `json:"est_dim"`
+	EstPadding     float32        `json:"est_padding,omitempty"`
+	EstWidth       float32        `json:"est_width,omitempty"`
+	AlongLineProp  float32        `json:"along_line_prop,omitempty"`
+	Est            float64        `json:"est,omitempty"`
+	PValue         float64        `json:"p_value,omitempty"`
+	CI             [2]float64     `json:"ci,omitempty"`
+	EstText        string         `json:"est_text,omitempty"`
+	Bold           bool           `json:"bold,omitempty"`
+	Curvature      float32        `json:"curvature,omitempty"`
+	UserDefined    bool           `json:"user_defined,omitempty"`
 }
 
 type FontSettings struct {
