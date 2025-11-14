@@ -52,7 +52,7 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		varMap[n.VarName] = n
 	}
 
-	connections := make([]*model.Connection, 0, len(rows))
+	connections := m.Connections
 	randMag := float32(2000)
 	var i int
 	for _, row := range rows {
@@ -137,7 +137,16 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		varMap[row.Rhs] = rhs
 		// assign connection to array
 
-		connections = append(connections, c)
+		// check of connection already exists
+		skip := false
+		for _, cExisting := range m.Connections {
+			if c.Origin == cExisting.Origin && c.Destination == cExisting.Destination && c.Type == cExisting.Type {
+				skip = true
+			}
+		}
+		if !skip {
+			connections = append(connections, c)
+		}
 	}
 
 	m.Font = model.FontSettings{
