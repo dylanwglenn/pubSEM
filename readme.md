@@ -52,10 +52,10 @@ exported within the script (i.e. without having to export from an external edito
 include the unintuitive programmatic creation of layouts and difficulty in maintaining legibility for complex diagrams.
 
 Interactive solutions, including [lavaangui](https://github.com/karchjd/lavaangui/), have the benefit of being
-interactive and intuitive. With these tools, users can easily layout and customize a path diagram. On the other hand,
-existing solutions in this category lack the exactness and reproducibility of programmatic solutions. After the user
+interactive and intuitive. With these tools, users can easily layout and customize a path diagram; however,
+existing solutions in this category lack the exactness and reproducibility of programmatic solutions. After you
 manually positions nodes and connections (often with some slight misalignment), the layout is not remembered. If you
-want redo their model with new data or add another variable, all your previous work in laying out the model must
+want redo the model with new data or add another variable, all your previous work in laying out the model must
 be redone.
 
 ## The pubSEM solution
