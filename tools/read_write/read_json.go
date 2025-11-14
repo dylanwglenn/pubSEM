@@ -36,7 +36,8 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 	// Check for existing project
 	projPath := filepath.Join(dir, projectName+".json")
 	loadedProj := false
-	if mExisting, err := LoadProject(projPath); err == nil {
+	mExisting, err := LoadProject(projPath)
+	if err == nil {
 		m = mExisting
 		loadedProj = true
 	}
@@ -49,10 +50,11 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 
 	// account for existing nodes from project
 	for _, n := range m.Nodes {
+		n.Visible = false
 		varMap[n.VarName] = n
 	}
 
-	connections := m.Connections
+	connections := make([]*model.Connection, 0)
 	randMag := float32(2000)
 	var i int
 	for _, row := range rows {
@@ -137,16 +139,17 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		varMap[row.Rhs] = rhs
 		// assign connection to array
 
-		// check of connection already exists
-		skip := false
-		for _, cExisting := range m.Connections {
-			if c.Origin == cExisting.Origin && c.Destination == cExisting.Destination && c.Type == cExisting.Type {
-				skip = true
+		// check of connection already exists. Match label placements
+		if mExisting != nil {
+			for _, cExisting := range mExisting.Connections {
+				if c.Origin.VarName == cExisting.Origin.VarName && c.Destination.VarName == cExisting.Destination.VarName && c.Type == cExisting.Type {
+					c.AlongLineProp = cExisting.AlongLineProp
+				}
 			}
 		}
-		if !skip {
-			connections = append(connections, c)
-		}
+
+		connections = append(connections, c)
+
 	}
 
 	m.Font = model.FontSettings{
