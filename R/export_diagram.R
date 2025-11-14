@@ -1,15 +1,15 @@
 
-#' Export a pubSEM project to PDF
+#' Export a pubSEM layout to PDF
 #'
-#' @param project_name a string denoting the pubSEM project to export
+#' @param layout_name a string denoting the pubSEM layout to export
 #' @param filename a string specifying the name of the exported PDF
 #' @param directory a string specifying the directory in which to save the
 #'   exported PDF. Defaults to the current working directory.
 #' @returns nothing
 #' @export
-export_diagram <- function(project_name, filename, directory = getwd()) {
+export_diagram <- function(layout_name, filename, directory = getwd()) {
     base_dir <- tools::R_user_dir("pubSEM", which = "data")
-    file_path <- file.path(base_dir, paste(project_name, ".json"))
+    file_path <- file.path(base_dir, paste(layout_name, ".json"))
 
     if (string_end(filename, 4) != ".pdf") {
         filename <- paste0(filename,".pdf")
@@ -25,7 +25,7 @@ export_diagram <- function(project_name, filename, directory = getwd()) {
 
     # run the GUI executable
     system2(gui_exec_path,
-            args = c(base_dir, project_name, "export", export_path)
+            args = c(base_dir, layout_name, "export", export_path)
     )
 }
 

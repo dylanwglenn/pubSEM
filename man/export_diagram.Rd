@@ -2,12 +2,12 @@
 % Please edit documentation in R/export_diagram.R
 \name{export_diagram}
 \alias{export_diagram}
-\title{Export a pubSEM project to PDF}
+\title{Export a pubSEM layout to PDF}
 \usage{
-export_diagram(project_name, filename, directory = getwd())
+export_diagram(layout_name, filename, directory = getwd())
 }
 \arguments{
-\item{project_name}{a string denoting the pubSEM project to export}
+\item{layout_name}{a string denoting the pubSEM layout to export}
 
 \item{filename}{a string specifying the name of the exported PDF}
 
@@ -18,5 +18,5 @@ exported PDF. Defaults to the current working directory.}
 nothing
 }
 \description{
-Export a pubSEM project to PDF
+Export a pubSEM layout to PDF
 }

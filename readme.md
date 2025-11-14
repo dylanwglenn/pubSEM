@@ -19,13 +19,29 @@ To install the package in r, run the following line:
 remotes::install_github("dylanwglenn/pubSEM")
 ```
 
+## Usage
+
+To use pubSEM, first create a diagram layout from a fitted lavaan model.
+
+```r
+pubSEM::sem_gui(fit = lavaan_fit, layout_name = "my-layout", standardized = FALSE) 
+```
+
+When you first see your model, it will be laid out essentially at random. Click and drag the nodes to arrange the
+diagram as you would like. Be sure to press "ctrl/cmd-S" to save your layout!
+
+To export your diagram to PDF, use the `export_diagram` function.
+```r
+pubSEM::export_diagram(layout_name = "my-layout", filename = "my-awsome-path-diagram")
+```
+
 ## Motivation
 
 Existing tools for the creation of path diagrams are either programmatic or interactive.
 
-Programmatic solutions, such as [semPlot](https://cran.r-project.org/web/packages/semPlot/index.html)
+Programmatic solutions, such as [semPlot](https://cran.r-layout.org/web/packages/semPlot/index.html)
 and [tidySEM](https://cjvanlissa.github.io/tidySEM/), have the benefit of producing diagrams that are easily
-reproducible, meaning that once a layout of variables is defined, the output automatically adapts to new data and can be
+reproducible, meaning that once a layout of nodes is defined, the output automatically adapts to new data and can be
 exported within the script (i.e. without having to export from an external editor). The downsides of these solutions
 include the unintuitive programmatic creation of layouts and difficulty in maintaining legibility for complex diagrams.
 
@@ -52,6 +68,7 @@ will live only on GitHub for the foreseeable future.
 
 ## Roadmap
 - [ ] Proper toolbar
+- [ ] Customization of covariance curves
 - [ ] Multiple node selection
 - [ ] Editing the visual names of variables
 - [ ] Adjusting color and weight of elements

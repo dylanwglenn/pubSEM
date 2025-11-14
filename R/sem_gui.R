@@ -9,13 +9,13 @@
 #'
 #' @param fit A lavaan object
 #' @param standardized A bool value
-#' @param project_name A string denoting the name of the pubSEM project to which
-#'   a layout should be stored. A project file stores persistent data for
-#'   reproducible diagrams in the current working directoloadry — project names
-#'   should be unique EVEN ACROSS R PROJECTS!
+#' @param layout_name A string denoting the name of the pubSEM layout to which
+#'   a layout should be stored. A layout file stores persistent data for
+#'   reproducible diagrams in the current working directoloadry — layout names
+#'   should be unique EVEN ACROSS R layoutS!
 #' @returns nothing
 #' @export
-sem_gui <- function(fit, project_name, standardized = FALSE) {
+sem_gui <- function(fit, layout_name, standardized = FALSE) {
     df_fit <- extract_lavaan_params(fit, standardized)
 
     base_dir <- tools::R_user_dir("pubSEM", which = "data")
@@ -38,7 +38,7 @@ sem_gui <- function(fit, project_name, standardized = FALSE) {
 
     # run the GUI executable
     system2(gui_exec_path,
-            args = c(base_dir, project_name, "edit")
+            args = c(base_dir, layout_name, "edit")
     )
 }
 

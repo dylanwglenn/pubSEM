@@ -4,15 +4,15 @@
 \alias{sem_gui}
 \title{Open the pubSEM GUI editor}
 \usage{
-sem_gui(fit, project_name, standardized = FALSE)
+sem_gui(fit, layout_name, standardized = FALSE)
 }
 \arguments{
 \item{fit}{A lavaan object}
 
-\item{project_name}{A string denoting the name of the pubSEM project to which
-a layout should be stored. A project file stores persistent data for
-reproducible diagrams in the current working directoloadry — project names
-should be unique EVEN ACROSS R PROJECTS!}
+\item{layout_name}{A string denoting the name of the pubSEM layout to which
+a layout should be stored. A layout file stores persistent data for
+reproducible diagrams in the current working directoloadry — layout names
+should be unique EVEN ACROSS R layoutS!}
 
 \item{standardized}{A bool value}
 }
