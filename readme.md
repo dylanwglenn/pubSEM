@@ -3,10 +3,6 @@
 pubSEM is a tool designed for the easy creation of publication-ready path diagrams. The tool is still in its (very)
 early stages. See the roadmap below for future plans.
 
-> [!NOTE]
-> pubSEM is designed only for plotting the output of lavaan models. If you want to interactively create lavaan models by
-> visually connecting nodes, try the wonderful [lavaangui](https://github.com/karchjd/lavaangui/).
-
 ## Installing
 
 > [!IMPORTANT]
@@ -21,6 +17,10 @@ remotes::install_github("dylanwglenn/pubSEM")
 
 ## Usage
 
+> [!NOTE]
+> pubSEM is designed only for plotting the output of lavaan models. If you want to interactively create lavaan models by
+> visually connecting nodes, try the wonderful [lavaangui](https://github.com/karchjd/lavaangui/).
+
 To use pubSEM, first create a diagram layout from a fitted lavaan model.
 
 ```r
@@ -28,12 +28,14 @@ pubSEM::sem_gui(fit = lavaan_fit, layout_name = "my-layout", standardized = FALS
 ```
 
 When you first see your model, it will be laid out essentially at random. Click and drag the nodes to arrange the
-diagram as you would like. Be sure to press "ctrl/cmd-S" to save your layout!
+diagram as you would like. **Be sure to press "ctrl/cmd-S" to save your layout!**
 
 To export your diagram to PDF, use the `export_diagram` function.
 ```r
 pubSEM::export_diagram(layout_name = "my-layout", filename = "my-awsome-path-diagram")
 ```
+
+<img width="720" height="480" alt="example path diagram" src="https://github.com/user-attachments/assets/00ad0560-8f78-45fe-b348-7a812e6b239d" />
 
 ## Motivation
 
