@@ -33,7 +33,7 @@ type Node struct {
 	Bold            bool             `json:"bold,omitempty"`
 	Thickness       float32          `json:"thickness,omitempty"`
 	UserDefined     bool             `json:"user_defined,omitempty"`
-	Visible         bool             `json:"visible,omitempty"`
+	Visible         bool             `json:"-"`
 	EdgeConnections [4][]*Connection `json:"-"` // only applicable for rectangular nodes
 	Padding         float32          `json:"padding,omitempty"`
 }
