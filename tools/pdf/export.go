@@ -14,7 +14,8 @@ import (
 
 const (
 	docPadding = 15
-	ppRatio    = .75 // pixel-to-point conversion
+	ppRatio    = .75  // pixel-to-point conversion
+	textAdj    = 3.42 // this is seemingly random. Arrived at through trial and error
 )
 
 //go:embed "gofpdf_fonts"
@@ -60,7 +61,6 @@ func ExportModel(m *model.Model, filePath string) {
 			// todo: handle intercepts
 		}
 
-		var textAdj float32 = 3.42 // this is seemingly random. Arrived at through trial and error
 		textPos := utils.LocalPos{
 			X: adjPos.X - textAdj + n.Padding*ppRatio,
 			Y: adjPos.Y + adjDim.H/2,
@@ -86,10 +86,13 @@ func ExportModel(m *model.Model, filePath string) {
 		case model.CURVED:
 			DrawArrowArc(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
 		}
+	}
 
+	// draw estimate labels after ALL of the connections to ensure proper layering
+	for _, c := range m.Connections {
 		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio) + (c.EstPadding * ppRatio)
 		textPos := utils.LocalPos{
-			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2,
+			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 - textAdj,
 			Y: (c.EstPos.Y+offsetY)*ppRatio - ppRatio/2, // assuming that ppRatio is text height
 		}
 
@@ -102,7 +105,6 @@ func ExportModel(m *model.Model, filePath string) {
 
 		DrawRect(pdf, rectPos, rectDim, color.NRGBA{255, 255, 255, 255}, 0)
 		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2, ppRatio)
-
 	}
 
 	// export

@@ -249,6 +249,13 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
 			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
 		}
+	}
+
+	// draw estimate labels after ALL of the connections to ensure proper layering
+	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
 
 		if m.CoeffDisplay != utils.NONE {
 			utils.DrawEstimate(
@@ -344,6 +351,12 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 			// determine label position as distance along curve
 			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
 			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
+		}
+	}
+	// draw estimate labels after ALL of the connections to ensure proper layering
+	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
 		}
 
 		if m.CoeffDisplay != utils.NONE {
