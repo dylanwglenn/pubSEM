@@ -250,6 +250,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 					continue
 				}
 
+				ec.lazyUpdate = false
 				if n := ec.draggedNode; n != nil { // if dragging a node...
 					newPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.dragOffset)
 					n.Pos = utils.SnapToGrid(newPos, ec.snapGridSize)
@@ -269,7 +270,7 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			case pointer.Release:
 				ec.draggedNode = nil
 				ec.draggedConnection = nil
-				ec.lazyUpdate = false
+				ec.lazyUpdate = true
 				pointer.CursorDefault.Add(ops)
 			default:
 			}
