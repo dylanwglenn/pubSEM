@@ -1,6 +1,6 @@
 #' Delete an existing project
 #'
-#' @param layout_name A string denoting the name of the pubSEM project to
+#' @param layout_name A string denoting the name of the pubSEM layout to
 #'   delete.
 #' @returns nothing
 #' @export
