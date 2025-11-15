@@ -23,7 +23,7 @@ import (
 //   ----------------------------
 //                2
 
-func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext, selectedNode *model.Node) {
+func CalculateModel(m *model.Model) {
 	// Reset all node connections every frame
 	for _, n := range m.Nodes {
 		if !n.Visible {
@@ -75,6 +75,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 			ctrl := utils.GetCtrlPoint(c.Origin.Pos.ToF32(), c.Destination.Pos.ToF32(), c.Curvature)
 			angle := -math.Atan2(float64(ctrl.Y-c.Origin.Pos.ToF32().Y), float64(ctrl.X-c.Origin.Pos.ToF32().X))
 			c.Angle = utils.NormalizeAngle(angle)
+		default:
 		}
 
 		AssignToEdges(c, m.Nodes)
@@ -115,6 +116,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 						if c.Destination == n {
 							angleMap[c] = utils.GetAngleLoc(c.Origin.Pos, c.Destination.Pos)
 						}
+					default:
 					}
 				}
 
@@ -160,47 +162,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 				}
 			}
 		}
-	}
 
-	for _, n := range m.Nodes {
-		if !n.Visible {
-			continue
-		}
-
-		switch n.Class {
-		case model.OBSERVED:
-			// draw the node itself
-			utils.DrawRect(
-				ops,
-				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				n.Dim.ToGlobal(ec.scaleFactor),
-				n.Col,
-				n.Thickness*ec.scaleFactor,
-			)
-
-		case model.LATENT:
-			utils.DrawEllipse(
-				ops,
-				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				n.Dim.ToGlobal(ec.scaleFactor),
-				n.Col,
-				n.Thickness*ec.scaleFactor,
-			)
-
-		case model.INTERCEPT:
-			//TODO: Handle drawing intercept
-		}
-
-		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / 1.5} // I think 1.5 is a magic number
-		utils.DrawText(
-			ops,
-			gtx,
-			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-			n.Text,
-			m.Font.Face,
-			unit.Sp(m.Font.Size),
-			ec.scaleFactor,
-		)
 	}
 
 	for _, c := range m.Connections {
@@ -221,63 +183,21 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext,
 			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
 		}
 
+		// determine label position as distance along curve
 		switch c.Type {
 		case model.STRAIGHT:
-			utils.DrawArrowLine(
-				ops,
-				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				c.Col,
-				c.Thickness*ec.scaleFactor,
-				ec.windowSize,
-			)
-
-			// determine label position as distance along curve
 			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
 			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
 			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
 		case model.CURVED:
-			utils.DrawArrowArc(
-				ops,
-				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				c.Col,
-				c.Thickness*ec.scaleFactor,
-				c.Curvature,
-				ec.windowSize,
-			)
-
-			// determine label position as distance along curve
 			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
 			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
 		}
 	}
-
-	// draw estimate labels after ALL of the connections to ensure proper layering
-	for _, c := range m.Connections {
-		if !c.UserDefined && !m.ViewGenerated {
-			continue
-		}
-
-		if m.CoeffDisplay != utils.NONE {
-			utils.DrawEstimate(
-				ops,
-				gtx,
-				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				m.Font.Face,
-				m.Font.Size,
-				ec.scaleFactor,
-				c.EstPadding,
-				c.EstText,
-				c.EstDim,
-				c.EstWidth,
-			)
-		}
-	}
 }
 
-// DrawModelFixed is a faster function for lazyUpdate the view. It does not update local positions
-func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+// DrawModel draws the path diagram
+func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
 	for _, n := range m.Nodes {
 		if !n.Visible {
 			continue
@@ -329,11 +249,6 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 				c.Thickness*ec.scaleFactor,
 				ec.windowSize,
 			)
-
-			// determine label position as distance along curve
-			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
-			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
-			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
 		case model.CURVED:
 			utils.DrawArrowArc(
 				ops,
@@ -344,10 +259,6 @@ func DrawModelFixed(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditCon
 				c.Curvature,
 				ec.windowSize,
 			)
-
-			// determine label position as distance along curve
-			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
-			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
 		}
 	}
 	// draw estimate labels after ALL of the connections to ensure proper layering

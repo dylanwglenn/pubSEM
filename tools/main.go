@@ -129,12 +129,10 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			CtrlPress(ops, gtx, m, baseDir, projectName)
 
 			// draw the model
-			switch {
-			case ec.lazyUpdate:
-				DrawModelFixed(ops, gtx, m, ec)
-			default:
-				DrawModel(ops, gtx, m, ec, ec.draggedNode)
+			if !ec.lazyUpdate {
+				CalculateModel(m)
 			}
+			DrawModel(ops, gtx, m, ec)
 
 			// complete the frame event
 			e.Frame(gtx.Ops)
