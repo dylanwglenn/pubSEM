@@ -1,3 +1,7 @@
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/dylanwglenn/pubSEM/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/dylanwglenn/pubSEM/actions/workflows/R-CMD-check.yaml)
+  <!-- badges: end -->
+
 # pubSEM: Publication-Ready Path Diagrams in R
 
 pubSEM is a tool designed for the easy creation of publication-ready path diagrams. The tool is still in its (very)
