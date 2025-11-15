@@ -23,6 +23,8 @@ import (
 //   ----------------------------
 //                2
 
+var varianceRadius float32 = 20
+
 func CalculateModel(m *model.Model) {
 	// Reset all node connections every frame
 	for _, n := range m.Nodes {
@@ -170,28 +172,49 @@ func CalculateModel(m *model.Model) {
 			continue
 		}
 
+		// calculate estimate label width once and then store (the text width calculation is VERY expensive)
 		if c.EstWidth == 0 {
 			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding)
 		}
 
-		if c.Origin.Class == model.LATENT {
-			angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
-			c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
-		}
-		if c.Destination.Class == model.LATENT {
-			angleToLatent := utils.GetAngleLoc(c.OriginPos, c.Destination.Pos)
-			c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
-		}
+		switch {
+		case c.Type != model.CIRCULAR:
+			if c.Origin.Class == model.LATENT {
+				angleFromLatent := utils.GetAngleLoc(c.Origin.Pos, c.DestinationPos)
+				c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, angleFromLatent, c.Origin.Dim.W/2.0)
+			}
+			if c.Destination.Class == model.LATENT {
+				angleToLatent := utils.GetAngleLoc(c.OriginPos, c.Destination.Pos)
+				c.DestinationPos = utils.MoveAlongAngleLoc(c.Destination.Pos, angleToLatent+math.Pi, c.Destination.Dim.W/2.0)
+			}
 
-		// determine label position as distance along curve
-		switch c.Type {
-		case model.STRAIGHT:
-			angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
-			dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
-			c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
-		case model.CURVED:
-			ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
-			c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
+			// determine label position as distance along curve
+			switch c.Type {
+			case model.STRAIGHT:
+				angle := utils.GetAngleLoc(c.OriginPos, c.DestinationPos)
+				dist := utils.DistLoc(c.OriginPos, c.DestinationPos)
+				c.EstPos = utils.MoveAlongAngleLoc(c.OriginPos, angle, dist*c.AlongLineProp)
+			case model.CURVED:
+				ctrl := utils.GetCtrlPoint(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.Curvature)
+				c.EstPos = utils.MoveAlongBezier(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), ctrl, c.AlongLineProp)
+			}
+		default: // case connection is circular
+			switch c.Origin.Class {
+			case model.LATENT:
+				r := c.Origin.Dim.W / 2.0
+				c.OriginPos = utils.MoveAlongAngleLoc(c.Origin.Pos, utils.NormalizeAngle(c.VarianceAngle-math.Pi/8), r)
+				c.DestinationPos = utils.MoveAlongAngleLoc(c.Origin.Pos, utils.NormalizeAngle(c.VarianceAngle+math.Pi/8), r)
+				c.RefPos = utils.MoveAlongAngleLoc(c.Origin.Pos, c.VarianceAngle, r)
+			case model.OBSERVED:
+				angleOrigin := utils.NormalizeAngle(c.VarianceAngle - math.Pi/8)
+				angleDestination := utils.NormalizeAngle(c.VarianceAngle + math.Pi/8)
+
+				c.OriginPos = utils.AngleRectIntersection(angleOrigin, c.Origin.Pos, c.Origin.Dim)
+				c.DestinationPos = utils.AngleRectIntersection(angleDestination, c.Origin.Pos, c.Origin.Dim)
+				c.RefPos = utils.AngleRectIntersection(c.VarianceAngle, c.Origin.Pos, c.Origin.Dim.Add(utils.LocalDim{5, 5}))
+			}
+			circleCenter := utils.FindCircleCenter(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), c.RefPos.ToF32(), varianceRadius)
+			c.EstPos = utils.MoveAlongAngleLoc(utils.ToLocalPos(circleCenter), c.VarianceAngle, varianceRadius)
 		}
 	}
 }
@@ -250,13 +273,24 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				ec.windowSize,
 			)
 		case model.CURVED:
-			utils.DrawArrowArc(
+			utils.DrawArrowCurve(
 				ops,
 				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				c.Col,
 				c.Thickness*ec.scaleFactor,
 				c.Curvature,
+				ec.windowSize,
+			)
+		case model.CIRCULAR:
+			utils.DrawArrowArc(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.RefPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				varianceRadius*ec.scaleFactor,
+				c.Col,
+				c.Thickness*ec.scaleFactor,
 				ec.windowSize,
 			)
 		}

@@ -20,6 +20,7 @@ type ConnectionType int
 const (
 	STRAIGHT ConnectionType = iota
 	CURVED
+	CIRCULAR
 )
 
 type Node struct {
@@ -43,6 +44,8 @@ type Connection struct {
 	Destination    *Node          `json:"destination,omitempty"`
 	OriginPos      utils.LocalPos `json:"origin_pos"`
 	DestinationPos utils.LocalPos `json:"destination_pos"`
+	RefPos         utils.LocalPos `json:"ref_pos"`        // only applicable for circular connections
+	VarianceAngle  float64        `json:"variance_angle"` // only applicable for circular connections
 	Angle          float64        `json:"angle,omitempty"`
 	Col            color.NRGBA    `json:"col"`
 	Thickness      float32        `json:"thickness,omitempty"`

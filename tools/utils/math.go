@@ -48,3 +48,77 @@ func MoveAlongBezier(a, b, ctrl f32.Point, t float32) LocalPos {
 func UnitVector(a, b LocalPos) LocalPos {
 	return LocalPos{X: b.X - a.X, Y: b.Y - a.Y}
 }
+
+func FindCircleCenter(p1, p2, sidePoint f32.Point, radius float32) f32.Point {
+	// Midpoint of p1 and p2
+	mx := (p1.X + p2.X) / 2
+	my := (p1.Y + p2.Y) / 2
+
+	// Distance between p1 and p2
+	dx := p2.X - p1.X
+	dy := p2.Y - p1.Y
+	dist := float32(math.Sqrt(float64(dx*dx + dy*dy)))
+
+	// Check if circle is possible
+	if dist > 2*radius {
+		return f32.Point{} // Points too far apart
+	}
+
+	// Distance from midpoint to center along perpendicular bisector
+	h := float32(math.Sqrt(float64(radius*radius - (dist/2)*(dist/2))))
+
+	// Unit perpendicular vector
+	px := -dy / dist
+	py := dx / dist
+
+	// Two possible centers
+	c1 := f32.Point{X: mx + h*px, Y: my + h*py}
+	c2 := f32.Point{X: mx - h*px, Y: my - h*py}
+
+	// Choose center on same side as sidePoint
+	// Use cross product to determine which side
+	cross1 := (c1.X-p1.X)*(sidePoint.Y-p1.Y) - (c1.Y-p1.Y)*(sidePoint.X-p1.X)
+	cross2 := (c2.X-p1.X)*(sidePoint.Y-p1.Y) - (c2.Y-p1.Y)*(sidePoint.X-p1.X)
+
+	if cross1*cross2 > 0 {
+		return c2
+	}
+	return c1
+}
+
+type Numeric interface {
+	~int | ~float32 | ~float64
+}
+
+func RemapValue[T Numeric](val, iLow, iHigh, oLow, oHigh T) T {
+	p := (val - iLow) / (iHigh - iLow)
+	return p*(oHigh-oLow) + oLow
+}
+
+func AngleRectIntersection(angle float64, pos LocalPos, dim LocalDim) LocalPos {
+	t := float32(math.Mod(angle+math.Pi/4, math.Pi/2))
+	switch {
+	case angle >= math.Pi/4 && angle < 3*math.Pi/4:
+		return LocalPos{
+			X: RemapValue(t, 0, math.Pi/2, pos.X+dim.W/2, pos.X-dim.W/2),
+			Y: pos.Y - dim.H/2.0,
+		}
+	case angle >= 3*math.Pi/4 && angle < 5*math.Pi/4:
+		return LocalPos{
+			X: pos.X - dim.W/2.0,
+			Y: RemapValue(t, 0, math.Pi/2, pos.Y-dim.H/2, pos.Y+dim.W/2),
+		}
+	case angle >= 5*math.Pi/4 && angle < 7*math.Pi/4:
+		return LocalPos{
+			X: RemapValue(t, 0, math.Pi/2, pos.X-dim.W/2, pos.X+dim.W/2),
+			Y: pos.Y + dim.H/2.0,
+		}
+	case angle >= 7*math.Pi/4 || angle < math.Pi/4:
+		return LocalPos{
+			X: pos.X + dim.W/2.0,
+			Y: RemapValue(t, 0, math.Pi/2, pos.Y+dim.H/2, pos.Y-dim.W/2),
+		}
+	default:
+		return LocalPos{}
+	}
+}

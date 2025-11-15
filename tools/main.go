@@ -252,8 +252,14 @@ func LeftClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 				} else if c := ec.draggedConnection; c != nil {
 					newCursorPos := utils.ToLocalPos(evt.Position).Div(ec.scaleFactor).Sub(ec.dragOffset)
-					// project the new cursor position along the connection line
-					_, c.AlongLineProp = utils.ProjectOntoLine(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), newCursorPos.ToF32())
+					switch {
+					case c.Type != model.CIRCULAR:
+						// project the new cursor position along the connection line
+						_, c.AlongLineProp = utils.ProjectOntoLine(c.OriginPos.ToF32(), c.DestinationPos.ToF32(), newCursorPos.ToF32())
+					default:
+						nodePosGlob := c.Origin.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize)
+						c.VarianceAngle = utils.GetAngle(nodePosGlob.ToF32(), evt.Position)
+					}
 				} else { // if not dragging a node, then pan
 					ec.lazyUpdate = true
 					panDelta := utils.ToLocalPos(evt.Position).Sub(ec.panClickPos).Div(ec.scaleFactor)
@@ -300,6 +306,7 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 					if WithinConnection(evt.Position.Round(), c, ec, tolerance, samples) {
 						if ec.editingSelection != c {
 							ec.editingSelection = c
+							c.Curvature *= -1 // change curvature on right click
 						} else {
 							ec.editingSelection = nil
 						}

@@ -157,6 +157,10 @@ func ToGlobalPos(pt image.Point) GlobalPos {
 	return GlobalPos{X: pt.X, Y: pt.Y}
 }
 
+func ToGlobalPosF32(pt f32.Point) GlobalPos {
+	return GlobalPos{X: int(pt.X), Y: int(pt.Y)}
+}
+
 func (r LocalRect) Contains(pos LocalPos) bool {
 	if pos.X >= r.NW.X && pos.X <= r.SE.X &&
 		pos.Y >= r.NW.Y && pos.Y <= r.SE.Y {

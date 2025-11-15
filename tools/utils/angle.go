@@ -1,6 +1,10 @@
 package utils
 
-import "math"
+import (
+	"math"
+
+	"gioui.org/f32"
+)
 
 func GetAngleLoc(a, b LocalPos) float64 {
 	rawAngle := -math.Atan2(float64(b.Y-a.Y), float64(b.X-a.X))
@@ -8,6 +12,11 @@ func GetAngleLoc(a, b LocalPos) float64 {
 }
 
 func GetAngleGlob(a, b GlobalPos) float64 {
+	rawAngle := -math.Atan2(float64(b.Y-a.Y), float64(b.X-a.X))
+	return NormalizeAngle(rawAngle)
+}
+
+func GetAngle(a, b f32.Point) float64 {
 	rawAngle := -math.Atan2(float64(b.Y-a.Y), float64(b.X-a.X))
 	return NormalizeAngle(rawAngle)
 }
@@ -34,6 +43,13 @@ func MoveAlongAngleLoc(pos LocalPos, angle float64, dist float32) LocalPos {
 	newY := pos.Y - dist*float32(math.Sin(angle))
 
 	return LocalPos{newX, newY}
+}
+
+func MoveAlongAngle(pos f32.Point, angle float64, dist float32) f32.Point {
+	newX := pos.X + dist*float32(math.Cos(angle))
+	newY := pos.Y - dist*float32(math.Sin(angle))
+
+	return f32.Point{newX, newY}
 }
 
 func SufficientlyAligned(angle, tolerance float64) bool {

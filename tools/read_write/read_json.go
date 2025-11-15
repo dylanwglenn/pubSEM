@@ -103,7 +103,11 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 			c.Origin = lhs
 			c.Destination = rhs
 		case "~~":
-			c.Type = model.CURVED
+			if lhs.VarName == rhs.VarName {
+				c.Type = model.CIRCULAR
+			} else {
+				c.Type = model.CURVED
+			}
 			c.Origin = lhs
 			c.Destination = rhs
 		case "~":

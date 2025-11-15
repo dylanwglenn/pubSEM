@@ -106,7 +106,7 @@ func DrawEllipse(ops *op.Ops, pos GlobalPos, dim GlobalDim, col color.NRGBA, thi
 	)
 }
 
-func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32, windowSize GlobalDim) {
+func DrawArrowCurve(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32, windowSize GlobalDim) {
 	// Calculate control point for tangent angles
 	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
@@ -119,7 +119,7 @@ func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness,
 	angleB := -math.Atan2(float64(posB.ToF32().Y-ctrl.Y), float64(posB.ToF32().X-ctrl.X))
 
 	// Draw the arc
-	DrawArc(ops, MoveAlongAngleGlob(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngleGlob(posB, angleB+math.Pi, arrowSize*.5), col, thickness, curvature)
+	DrawCurve(ops, MoveAlongAngleGlob(posA, angleA+math.Pi, arrowSize*.5), MoveAlongAngleGlob(posB, angleB+math.Pi, arrowSize*.5), col, thickness, curvature)
 
 	// Draw arrow at posA
 	DrawArrowHead(ops, posA, angleA, arrowSize, col, windowSize)
@@ -128,13 +128,60 @@ func DrawArrowArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness,
 	DrawArrowHead(ops, posB, angleB, arrowSize, col, windowSize)
 }
 
-func DrawArc(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32) {
+func DrawCurve(ops *op.Ops, posA, posB GlobalPos, col color.NRGBA, thickness, curvature float32) {
 	ctrl := GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	var path clip.Path
 	path.Begin(ops)
 	path.MoveTo(posA.ToF32())
 	path.QuadTo(ctrl, posB.ToF32())
+
+	paint.FillShape(ops, col,
+		clip.Stroke{
+			Path:  path.End(),
+			Width: thickness,
+		}.Op(),
+	)
+}
+
+func DrawArrowArc(ops *op.Ops, posA, posB, refPoint GlobalPos, radius float32, col color.NRGBA, thickness float32, windowSize GlobalDim) {
+	circleCenter := FindCircleCenter(posA.ToF32(), posB.ToF32(), refPoint.ToF32(), radius)
+	arrowSize := float64(thickness * 5)
+	offsetAngle := arrowSize / float64(radius)
+	angleA := GetAngle(circleCenter, posA.ToF32())
+	angleB := GetAngle(circleCenter, posB.ToF32())
+	angleTangentA := NormalizeAngle(angleA + offsetAngle - math.Pi/2)
+	angleTangentB := NormalizeAngle(angleB - offsetAngle + math.Pi/2)
+
+	DrawArc(ops, posA, posB, refPoint, radius, arrowSize/float64(radius), col, thickness)
+
+	truncatedPosA := MoveAlongAngle(circleCenter, NormalizeAngle(angleA+offsetAngle), radius)
+	truncatedPosB := MoveAlongAngle(circleCenter, NormalizeAngle(angleB-offsetAngle), radius)
+
+	arrowPosA := MoveAlongAngle(truncatedPosA, angleTangentA, float32(arrowSize))
+	arrowPosB := MoveAlongAngle(truncatedPosB, angleTangentB, float32(arrowSize))
+
+	DrawArrowHead(ops, ToGlobalPosF32(arrowPosA), angleTangentA, arrowSize, col, windowSize)
+	DrawArrowHead(ops, ToGlobalPosF32(arrowPosB), angleTangentB, arrowSize, col, windowSize)
+
+}
+
+func DrawArc(ops *op.Ops, posA, posB, refPoint GlobalPos, radius float32, offsetAngle float64, col color.NRGBA, thickness float32) {
+	circleCenter := FindCircleCenter(posA.ToF32(), posB.ToF32(), refPoint.ToF32(), radius)
+	angleA := GetAngle(circleCenter, posA.ToF32())
+	angleB := GetAngle(circleCenter, posB.ToF32())
+
+	offsetAngle *= .9 // shorted the offset angle a bit
+
+	truncatedPosB := MoveAlongAngle(circleCenter, NormalizeAngle(angleB-offsetAngle), radius)
+
+	angleDiff := math.Mod(angleB-angleA+math.Pi, 2*math.Pi) - math.Pi
+	angle := NormalizeAngle(angleDiff - 2*offsetAngle)
+
+	var path clip.Path
+	path.Begin(ops)
+	path.MoveTo(truncatedPosB)
+	path.ArcTo(circleCenter, circleCenter, float32(angle))
 
 	paint.FillShape(ops, col,
 		clip.Stroke{
