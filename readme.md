@@ -62,8 +62,8 @@ be redone.
 
 pubSEM seeks to offer the intuitiveness of interactive plotting solutions along with the precision and reproducibility
 of programmatic solutions. The tool features an interactive editor that can be used to precisely position nodes. The
-positions of these nodes are then remembered — once a layout is defined and saved with the`semGUI()` function,
-`export_path_diagram()` can be used to export a path diagram according to the layout previously defined without opening
+positions of these nodes are then remembered — once a layout is defined and saved with the`sem_gui()` function,
+`export_diagram()` can be used to export a path diagram according to the layout previously defined without opening
 the GUI.
 
 ## Why is it not on CRAN?
