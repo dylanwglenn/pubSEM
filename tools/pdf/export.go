@@ -88,7 +88,14 @@ func ExportModel(m *model.Model, filePath string) {
 		case model.STRAIGHT:
 			DrawArrowLine(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio)
 		case model.CURVED:
-			DrawArrowArc(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
+			DrawArrowCurve(pdf, originPos, destPos, c.Col, c.Thickness*ppRatio, c.Curvature)
+		case model.CIRCULAR:
+			refPos := utils.LocalPos{
+				X: (c.RefPos.X + offsetX) * ppRatio,
+				Y: (c.RefPos.Y + offsetY) * ppRatio,
+			}
+			var radius float32 = 20
+			DrawArrowArc(pdf, originPos, destPos, refPos, radius, c.Col, c.Thickness*ppRatio)
 		}
 	}
 

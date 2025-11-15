@@ -54,7 +54,7 @@ func DrawArrowLine(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA,
 	DrawArrowHead(pdf, posB, angle, arrowSize, col)
 }
 
-func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
+func DrawArrowCurve(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
 	// Calculate control point for quadratic bezier
 	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
@@ -69,7 +69,7 @@ func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, 
 	// Draw the arc shortened at both ends
 	startPos := utils.MoveAlongAngleLoc(posA, angleA+math.Pi, arrowSize*0.5)
 	endPos := utils.MoveAlongAngleLoc(posB, angleB+math.Pi, arrowSize*0.5)
-	DrawArc(pdf, startPos, endPos, col, thickness, curvature)
+	DrawCurve(pdf, startPos, endPos, col, thickness, curvature)
 
 	// Draw arrow heads
 	DrawArrowHead(pdf, posA, angleA, arrowSize, col)
@@ -82,7 +82,7 @@ func DrawLine(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thic
 	pdf.Line(float64(posA.X), float64(posA.Y), float64(posB.X), float64(posB.Y))
 }
 
-func DrawArc(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
+func DrawCurve(pdf *gofpdf.Fpdf, posA, posB utils.LocalPos, col color.NRGBA, thickness float32, curvature float32) {
 	ctrl := utils.GetCtrlPoint(posA.ToF32(), posB.ToF32(), curvature)
 
 	pdf.SetLineWidth(float64(thickness))
@@ -115,6 +115,50 @@ func DrawArrowHead(pdf *gofpdf.Fpdf, basePos utils.LocalPos, angle float64, size
 		{X: float64(p2.X), Y: float64(p2.Y)},
 		{X: float64(basePos.X), Y: float64(basePos.Y)},
 	}, "F")
+}
+
+func DrawArc(pdf *gofpdf.Fpdf, posA, posB, refPoint utils.LocalPos, radius float32, offsetAngle float64, col color.NRGBA, thickness float32) {
+	circleCenter := utils.FindCircleCenter(posA.ToF32(), posB.ToF32(), refPoint.ToF32(), radius)
+	angleA := utils.GetAngle(circleCenter, posA.ToF32())
+	angleB := utils.GetAngle(circleCenter, posB.ToF32())
+
+	offsetAngle *= 0.9 // shorten the offset angle a bit
+
+	truncatedPosB := utils.MoveAlongAngle(circleCenter, utils.NormalizeAngle(angleB-offsetAngle), radius)
+
+	angleDiff := math.Mod(angleB-angleA+math.Pi, 2*math.Pi) - math.Pi
+	angle := utils.NormalizeAngle(angleDiff - 2*offsetAngle)
+
+	pdf.SetLineWidth(float64(thickness))
+	pdf.SetDrawColor(int(col.R), int(col.G), int(col.B))
+
+	// Arc draws from angle1 to angle2 (in degrees) counter-clockwise
+	startAngleDeg := math.Atan2(float64(truncatedPosB.Y-circleCenter.Y), float64(truncatedPosB.X-circleCenter.X)) * 180 / math.Pi
+	sweepAngleDeg := angle * 180 / math.Pi
+
+	pdf.SetLineCapStyle("round")
+	pdf.Arc(float64(circleCenter.X), float64(circleCenter.Y), float64(radius), float64(radius), 0, startAngleDeg, startAngleDeg+sweepAngleDeg, "D")
+}
+
+func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB, refPoint utils.LocalPos, radius float32, col color.NRGBA, thickness float32) {
+	circleCenter := utils.FindCircleCenter(posA.ToF32(), posB.ToF32(), refPoint.ToF32(), radius)
+	arrowSize := float64(thickness * 5)
+	offsetAngle := arrowSize / float64(radius)
+	angleA := utils.GetAngle(circleCenter, posA.ToF32())
+	angleB := utils.GetAngle(circleCenter, posB.ToF32())
+	angleTangentA := utils.NormalizeAngle(angleA + offsetAngle - math.Pi/2)
+	angleTangentB := utils.NormalizeAngle(angleB - offsetAngle + math.Pi/2)
+
+	DrawArc(pdf, posA, posB, refPoint, radius, arrowSize/float64(radius), col, thickness)
+
+	truncatedPosA := utils.MoveAlongAngle(circleCenter, utils.NormalizeAngle(angleA+offsetAngle), radius)
+	truncatedPosB := utils.MoveAlongAngle(circleCenter, utils.NormalizeAngle(angleB-offsetAngle), radius)
+
+	arrowPosA := utils.MoveAlongAngle(truncatedPosA, angleTangentA, float32(arrowSize))
+	arrowPosB := utils.MoveAlongAngle(truncatedPosB, angleTangentB, float32(arrowSize))
+
+	DrawArrowHead(pdf, utils.ToLocalPos(arrowPosA), angleTangentA, float32(arrowSize), col)
+	DrawArrowHead(pdf, utils.ToLocalPos(arrowPosB), angleTangentB, float32(arrowSize), col)
 }
 
 func DrawText(pdf *gofpdf.Fpdf, pos utils.LocalPos, txt string, fontFamily string, bold bool, size, ppRatio float32) {
