@@ -7,7 +7,7 @@
 delete_layout(layout_name)
 }
 \arguments{
-\item{layout_name}{A string denoting the name of the pubSEM project to
+\item{layout_name}{A string denoting the name of the pubSEM layout to
 delete.}
 }
 \value{
