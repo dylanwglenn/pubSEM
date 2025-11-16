@@ -1,7 +1,7 @@
 Package: pubSEM
 Type: Package
 Title: Create Publication-Ready Path Diagrams from 'lavaan' Models
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
       "Dylan", "Glenn",
@@ -9,7 +9,7 @@ Authors@R: c(
       role = c("aut", "cre")
     )
   )
-Description: Easily ceate aesthetically pleasing and reproducable path diagrams
+Description: Easily create aesthetically pleasing and reproducable path diagrams
     from fitted 'lavaan' structural equation models using an included GUI.
 License: GPL (>= 3)
 Encoding: UTF-8

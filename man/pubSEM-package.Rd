@@ -6,7 +6,7 @@
 \alias{pubSEM-package}
 \title{pubSEM: Create Publication-Ready Path Diagrams from 'lavaan' Models}
 \description{
-Easily ceate aesthetically pleasing and reproducable path diagrams from fitted 'lavaan' structural equation models using an included GUI.
+Easily create aesthetically pleasing and reproducable path diagrams from fitted 'lavaan' structural equation models using an included GUI.
 }
 \author{
 \strong{Maintainer}: Dylan Glenn \email{dylanwglenn@gmail.com}
