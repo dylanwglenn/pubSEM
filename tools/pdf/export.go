@@ -95,7 +95,7 @@ func ExportModel(m *model.Model, filePath string) {
 				Y: (c.RefPos.Y + offsetY) * ppRatio,
 			}
 			var radius float32 = 20
-			DrawArrowArc(pdf, originPos, destPos, refPos, radius, c.Col, c.Thickness*ppRatio)
+			DrawArrowArc(pdf, originPos, destPos, refPos, radius*ppRatio, c.Col, c.Thickness*ppRatio)
 		}
 	}
 
