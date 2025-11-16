@@ -154,6 +154,30 @@ func GetModelSize(m *model.Model) (rect [2]utils.LocalPos, dim utils.LocalDim) {
 		}
 	}
 
+	for _, c := range m.Connections {
+		minX := c.EstPos.X - c.EstDim.W/2
+		maxX := c.EstPos.X + c.EstDim.W/2
+		minY := c.EstPos.Y - c.EstDim.H/2
+		maxY := c.EstPos.Y + c.EstDim.H/2
+
+		// handle x coords
+		if minX < rect[0].X {
+			rect[0].X = minX
+		}
+		if maxX > rect[1].X {
+			rect[1].X = maxX
+		}
+
+		// handle y coords
+		// (remember that lower ys are visually higher)
+		if minY < rect[0].Y {
+			rect[0].Y = minY
+		}
+		if maxY > rect[1].Y {
+			rect[1].Y = maxY
+		}
+	}
+
 	dim = utils.LocalDim{
 		W: utils.Abs32(rect[1].X - rect[0].X),
 		H: utils.Abs32(rect[1].Y - rect[0].Y),
