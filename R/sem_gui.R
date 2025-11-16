@@ -32,15 +32,18 @@ sem_gui <- function(fit, layout_name, standardized = FALSE) {
 
     if (Sys.info()['sysname'] == "Windows") {
         gui_exec_path <- system.file("bin", "sem_gui.exe", package = "pubSEM", mustWork = TRUE)
+        # run the GUI executable
+        system2(gui_exec_path,
+                args = c(base_dir, layout_name, "edit"),
+                invisible = FALSE #necessary for Windows
+        )
     } else {
         gui_exec_path <- system.file("bin", "sem_gui", package = "pubSEM", mustWork = TRUE)
+        # run the GUI executable
+        system2(gui_exec_path,
+                args = c(base_dir, layout_name, "edit")
+        )
     }
-
-    # run the GUI executable
-    system2(gui_exec_path,
-            args = c(base_dir, layout_name, "edit"),
-            invisible = FALSE #necessary for Windows
-    )
 }
 
 
