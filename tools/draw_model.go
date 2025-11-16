@@ -383,6 +383,7 @@ func GetBestEdge(candidateEdges []int, destNode, originNode *model.Node, originE
 }
 
 func GetCandidateDestEdges(angle float64) []int {
+	angle = utils.NormalizeAngle(angle)
 	switch {
 	case angle >= 0 && angle < math.Pi/2.0:
 		return []int{2, 3}
