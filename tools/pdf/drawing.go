@@ -154,8 +154,8 @@ func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB, refPoint utils.LocalPos, radius 
 	truncatedPosA := utils.MoveAlongAngle(circleCenter, utils.NormalizeAngle(angleA+offsetAngle), radius)
 	truncatedPosB := utils.MoveAlongAngle(circleCenter, utils.NormalizeAngle(angleB-offsetAngle), radius)
 
-	arrowPosA := utils.MoveAlongAngle(truncatedPosA, angleTangentA, float32(arrowSize))
-	arrowPosB := utils.MoveAlongAngle(truncatedPosB, angleTangentB, float32(arrowSize))
+	arrowPosA := utils.MoveAlongAngle(truncatedPosA, angleTangentA, float32(arrowSize)-thickness)
+	arrowPosB := utils.MoveAlongAngle(truncatedPosB, angleTangentB, float32(arrowSize)-thickness)
 
 	DrawArrowHead(pdf, utils.ToLocalPos(arrowPosA), angleTangentA, float32(arrowSize), col)
 	DrawArrowHead(pdf, utils.ToLocalPos(arrowPosB), angleTangentB, float32(arrowSize), col)
