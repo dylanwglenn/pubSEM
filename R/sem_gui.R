@@ -38,7 +38,8 @@ sem_gui <- function(fit, layout_name, standardized = FALSE) {
 
     # run the GUI executable
     system2(gui_exec_path,
-            args = c(base_dir, layout_name, "edit")
+            args = c(base_dir, layout_name, "edit"),
+            invisible = FALSE #necessary for Windows
     )
 }
 
