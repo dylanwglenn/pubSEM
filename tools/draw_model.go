@@ -25,7 +25,7 @@ import (
 
 var varianceRadius float32 = 20
 
-func CalculateModel(m *model.Model) {
+func CalculateModel(m *model.Model, gtx layout.Context) {
 	// Reset all node connections every frame
 	for _, n := range m.Nodes {
 		if !n.Visible {
@@ -35,7 +35,7 @@ func CalculateModel(m *model.Model) {
 		n.EdgeConnections = [4][]*model.Connection{}
 		// define node dimensions
 		if n.TextWidth == 0 {
-			n.TextWidth = utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size)
+			n.TextWidth = utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size, gtx)
 		}
 		// todo: decide whether to snap dimensions to grid as well as position
 		//adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
@@ -174,7 +174,7 @@ func CalculateModel(m *model.Model) {
 
 		// calculate estimate label width once and then store (the text width calculation is VERY expensive)
 		if c.EstWidth == 0 {
-			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding)
+			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding, gtx)
 		}
 
 		switch {

@@ -253,11 +253,18 @@ func DrawText(ops *op.Ops, gtx layout.Context, pos GlobalPos, txt string, style 
 	label.Layout(gtx)
 }
 
-func GetTextWidth(txt string, style font.FontFace, size float32) float32 {
+func GetTextWidth(txt string, style font.FontFace, size float32, gtx layout.Context) float32 {
+	var pxPerEm fixed.Int26_6
+	if gtx.Metric.PxPerSp == 0 {
+		pxPerEm = fixed.I(int(size))
+	} else {
+		pxPerEm = fixed.I(gtx.Sp(unit.Sp(size)))
+	}
+
 	shaper := text.NewShaper()
 	params := text.Parameters{
 		Font:    style.Font,
-		PxPerEm: fixed.I(int(size)),
+		PxPerEm: pxPerEm,
 	}
 
 	shaper.LayoutString(params, txt)
@@ -286,7 +293,7 @@ func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font
 	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
 }
 
-func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32) (string, LocalDim, float32) {
+func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32, gtx layout.Context) (string, LocalDim, float32) {
 	// define the string to be printed
 	var estText string
 
@@ -311,7 +318,7 @@ func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle C
 	}
 
 	// draw the background rectangle
-	textWidth := GetTextWidth(estText, fontStyle, fontSize)
+	textWidth := GetTextWidth(estText, fontStyle, fontSize, gtx)
 	adjWidth := textWidth + padding*3.0
 	height := fontSize * 1.5 // todo: find a better way to determine height of text
 	return estText, LocalDim{W: adjWidth, H: height}, textWidth

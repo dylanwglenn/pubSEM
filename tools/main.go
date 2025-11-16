@@ -73,7 +73,7 @@ func main() {
 	th := material.NewTheme()
 
 	// testing
-	decimalPlaces = 2 //todo: allow changing of decimal placess
+	decimalPlaces = 2 //todo: allow changing of decimal places
 
 	go func() {
 		// create new window
@@ -130,7 +130,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 
 			// draw the model
 			if !ec.lazyUpdate {
-				CalculateModel(m)
+				CalculateModel(m, gtx)
 			}
 			DrawModel(ops, gtx, m, ec)
 
