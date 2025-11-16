@@ -133,8 +133,8 @@ func DrawArc(pdf *gofpdf.Fpdf, posA, posB, refPoint utils.LocalPos, radius float
 	pdf.SetDrawColor(int(col.R), int(col.G), int(col.B))
 
 	// Arc draws from angle1 to angle2 (in degrees) counter-clockwise
-	startAngleDeg := math.Atan2(float64(truncatedPosB.Y-circleCenter.Y), float64(truncatedPosB.X-circleCenter.X)) * 180 / math.Pi
-	sweepAngleDeg := angle * 180 / math.Pi
+	startAngleDeg := math.Atan2(float64(truncatedPosB.Y-circleCenter.Y), float64(truncatedPosB.X-circleCenter.X)) * -180 / math.Pi
+	sweepAngleDeg := angle * -180 / math.Pi
 
 	pdf.SetLineCapStyle("round")
 	pdf.Arc(float64(circleCenter.X), float64(circleCenter.Y), float64(radius), float64(radius), 0, startAngleDeg, startAngleDeg+sweepAngleDeg, "D")
