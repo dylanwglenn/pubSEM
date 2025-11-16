@@ -12,7 +12,7 @@
 #' @param layout_name A string denoting the name of the pubSEM layout to which
 #'   a layout should be stored. A layout file stores persistent data for
 #'   reproducible diagrams in the current working directoloadry — layout names
-#'   should be unique EVEN ACROSS R layoutS!
+#'   should be unique EVEN ACROSS R projects!
 #' @returns nothing
 #' @export
 sem_gui <- function(fit, layout_name, standardized = FALSE) {
