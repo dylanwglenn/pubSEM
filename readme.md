@@ -4,7 +4,7 @@
 
 # pubSEM: Publication-Ready Path Diagrams in R
 
-pubSEM is a tool designed for the easy creation of publication-ready path diagrams. The tool is still in its (very)
+pubSEM is a tool designed for the easy creation of publication-ready path diagrams. The tool is functional but still in its
 early stages. See the roadmap below for future plans.
 
 ## Installing
@@ -13,7 +13,7 @@ early stages. See the roadmap below for future plans.
 > pubSEM requires a recent version of Go for compilation. Go can be installed here: https://go.dev/doc/install
 
 
-To install the package in r, run the following line:
+To install the package in R, run the following line:
 
 ```r
 remotes::install_github("dylanwglenn/pubSEM")
@@ -43,7 +43,10 @@ To export your diagram to a PDF, use the `export_diagram` function.
 pubSEM::export_diagram(layout_name = "my-layout", filename = "my-awsome-path-diagram")
 ```
 
-<img width="720" height="480" alt="example path diagram" src="https://github.com/user-attachments/assets/00ad0560-8f78-45fe-b348-7a812e6b239d" />
+## Examples
+<img width="462" height="600" alt="Screenshot from 2025-11-16 01-48-31" src="https://github.com/user-attachments/assets/af8a4eb8-cdd1-4114-a33b-b71c08e12682" />
+
+<img width="1265" height="766" alt="Screenshot from 2025-11-14 22-24-37" src="https://github.com/user-attachments/assets/13c445cf-3114-4963-a86c-fec5eacfc70f" />
 
 ## Motivation
 
@@ -79,7 +82,6 @@ will live only on GitHub for the foreseeable future.
 ## Roadmap
 
 - [ ] Proper toolbar
-- [ ] Customization of covariance curves
 - [ ] Multiple node selection
 - [ ] Editing the visual names of variables
 - [ ] Adjusting color and weight of elements
@@ -87,7 +89,8 @@ will live only on GitHub for the foreseeable future.
 - [ ] Adjusting the height of nodes
 - [ ] Multi-line variable names
 - [ ] Option to use serif or sans-serif fonts
+- [ ] Per-node text sizing
 - [ ] Option to grey out insignificant paths
-- [ ] Changing dimensions for grid snapping
+- [ ] support for blavaan models
 - [ ] support for multiple groups
 - [ ] support for multi-level models
