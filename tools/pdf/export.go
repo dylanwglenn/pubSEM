@@ -7,6 +7,7 @@ import (
 	"main/model"
 	"main/utils"
 	"os"
+	"path"
 	"path/filepath"
 
 	"gioui.org/layout"
@@ -202,7 +203,7 @@ func createTempFontDir() string {
 			continue
 		}
 
-		data, err := pdfFontFS.ReadFile(filepath.Join("gofpdf_fonts", f.Name()))
+		data, err := pdfFontFS.ReadFile(path.Join("gofpdf_fonts", f.Name()))
 		if err != nil {
 			panic(err)
 		}
