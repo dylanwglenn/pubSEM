@@ -148,6 +148,8 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 			for _, cExisting := range mExisting.Connections {
 				if c.Origin.VarName == cExisting.Origin.VarName && c.Destination.VarName == cExisting.Destination.VarName && c.Type == cExisting.Type {
 					c.AlongLineProp = cExisting.AlongLineProp
+					c.VarianceAngle = cExisting.VarianceAngle
+					c.Curvature = cExisting.Curvature
 				}
 			}
 		}
