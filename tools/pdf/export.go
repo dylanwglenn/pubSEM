@@ -24,7 +24,16 @@ const (
 var pdfFontFS embed.FS
 
 func ExportModel(m *model.Model, filePath string) {
-	rect, localDim := GetModelSize(m)
+	// check for different PxPerDp. If not one, copy the model and apply a transformation
+	var mAdj *model.Model
+	if m.PxPerDp == 1.0 {
+		mAdj = m
+	} else {
+		mAdj = transformModel(m)
+		model.CalculateModel(mAdj, layout.Context{})
+	}
+
+	rect, localDim := GetModelSize(mAdj)
 
 	pageWidth := localDim.W*ppRatio + 2*docPadding
 	pageHeight := localDim.H*ppRatio + 2*docPadding
@@ -45,7 +54,7 @@ func ExportModel(m *model.Model, filePath string) {
 	offsetX := docPadding - rect[0].X
 	offsetY := docPadding - rect[0].Y
 
-	for _, n := range m.Nodes {
+	for _, n := range mAdj.Nodes {
 		if !n.Visible {
 			continue
 		}
@@ -75,8 +84,8 @@ func ExportModel(m *model.Model, filePath string) {
 		DrawText(pdf, textPos, n.Text, m.Font.Family, n.Bold, m.Font.Size, ppRatio)
 	}
 
-	for _, c := range m.Connections {
-		// adjust connection points to PDS coords
+	for _, c := range mAdj.Connections {
+		// convert connection points to PDF coords
 		originPos := utils.LocalPos{
 			X: (c.OriginPos.X + offsetX) * ppRatio,
 			Y: (c.OriginPos.Y + offsetY) * ppRatio,
@@ -101,8 +110,8 @@ func ExportModel(m *model.Model, filePath string) {
 		}
 	}
 
-	// draw estimate labels after ALL of the connections to ensure proper layering
-	for _, c := range m.Connections {
+	// draw estimate labels after all the connections to ensure proper layering
+	for _, c := range mAdj.Connections {
 		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio, layout.Context{}) + (c.EstPadding * ppRatio)
 		textPos := utils.LocalPos{
 			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 - textAdj,
@@ -114,7 +123,7 @@ func ExportModel(m *model.Model, filePath string) {
 			Y: (c.EstPos.Y - c.EstDim.H/2 + offsetY) * ppRatio,
 		}
 
-		rectDim := c.EstDim.Mul(ppRatio)
+		rectDim := c.EstDim.Div(m.PxPerDp).Mul(ppRatio)
 
 		DrawRect(pdf, rectPos, rectDim, color.NRGBA{255, 255, 255, 255}, 0)
 		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2, ppRatio)
@@ -215,4 +224,12 @@ func createTempFontDir() string {
 	}
 
 	return tempDir
+}
+
+func transformModel(m *model.Model) *model.Model {
+	res := m.Clone()
+	for _, n := range res.Nodes {
+		n.Dim = n.Dim.Div(m.PxPerDp)
+	}
+	return res
 }

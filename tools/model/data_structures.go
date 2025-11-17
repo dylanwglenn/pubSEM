@@ -77,4 +77,5 @@ type Model struct {
 	Font          FontSettings             `json:"font"`
 	CoeffDisplay  utils.CoefficientDisplay `json:"coeff_display,omitempty"`
 	ViewGenerated bool                     `json:"view_generated,omitempty"`
+	PxPerDp       float32                  `json:"px_per_dp,omitempty"`
 }

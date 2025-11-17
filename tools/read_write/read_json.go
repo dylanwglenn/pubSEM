@@ -131,8 +131,7 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		rhs.Thickness = 3.0
 		c.Thickness = 2.0
 
-		lhs.Padding = estPadding
-		rhs.Padding = estPadding
+		c.EstPadding = estPadding
 
 		c.Curvature = roundness
 		c.AlongLineProp = propAlongLine
@@ -158,12 +157,19 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 
 	}
 
-	m.Font = model.FontSettings{
-		Family: "sans",
-		Size:   16,
-		Face:   utils.LoadSansFontFace()[0],
+	if mExisting != nil {
+		m.CoeffDisplay = mExisting.CoeffDisplay
+		m.Font = mExisting.Font
+		m.PxPerDp = mExisting.PxPerDp
+	} else {
+		m.Font = model.FontSettings{
+			Family: "sans",
+			Size:   16,
+			Face:   utils.LoadSansFontFace()[0],
+		}
+		m.CoeffDisplay = utils.STAR
 	}
-	m.CoeffDisplay = utils.STAR
+
 	m.Connections = connections
 	m.Nodes = utils.MapValsToSlice(varMap)
 	m.Network = CalculateNodeNetwork(connections)

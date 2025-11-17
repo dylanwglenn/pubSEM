@@ -25,7 +25,6 @@ const (
 	startingWidth    int = 1200
 	startingHeight   int = 800
 	editorVertOffset     = 30
-	targetPadding        = 10
 )
 
 var (
@@ -101,6 +100,10 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 			// gtx is used to pass around rendering and event information.
 			gtx := app.NewContext(ops, e)
 
+			if m.PxPerDp == 0 {
+				m.PxPerDp = gtx.Metric.PxPerDp
+			}
+
 			ec.windowSize = utils.GlobalDim{W: gtx.Constraints.Max.X, H: gtx.Constraints.Max.Y}
 
 			// handle scrolling to zoom
@@ -130,7 +133,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 
 			// draw the model
 			if !ec.lazyUpdate {
-				CalculateModel(m, gtx)
+				model.CalculateModel(m, gtx)
 			}
 			DrawModel(ops, gtx, m, ec)
 
@@ -404,4 +407,103 @@ func WithinConnection(pos image.Point, c *model.Connection, ec *EditContext, tol
 		return utils.WithinArc(pos, posA, posB, c.Curvature, hitRadius, samples)
 	}
 	return utils.WithinLine(pos, posA, posB, hitRadius)
+}
+
+// DrawModel draws the path diagram
+func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext) {
+	for _, n := range m.Nodes {
+		if !n.Visible {
+			continue
+		}
+
+		switch n.Class {
+		case model.OBSERVED:
+			utils.DrawRect(
+				ops,
+				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				n.Dim.ToGlobal(ec.scaleFactor),
+				n.Col,
+				n.Thickness*ec.scaleFactor,
+			)
+		case model.LATENT:
+			utils.DrawEllipse(
+				ops,
+				n.Pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				n.Dim.ToGlobal(ec.scaleFactor),
+				n.Col,
+				n.Thickness*ec.scaleFactor,
+			)
+		}
+
+		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / (1.5 / m.PxPerDp)} // I think 1.5 is a magic number
+		utils.DrawText(
+			ops,
+			gtx,
+			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+			n.Text,
+			m.Font.Face,
+			unit.Sp(m.Font.Size),
+			ec.scaleFactor,
+		)
+	}
+
+	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
+		switch c.Type {
+		case model.STRAIGHT:
+			utils.DrawArrowLine(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				ec.windowSize,
+			)
+		case model.CURVED:
+			utils.DrawArrowCurve(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				c.Curvature,
+				ec.windowSize,
+			)
+		case model.CIRCULAR:
+			utils.DrawArrowArc(
+				ops,
+				c.OriginPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.DestinationPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				c.RefPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				model.VarianceRadius*ec.scaleFactor,
+				c.Col,
+				c.Thickness*ec.scaleFactor,
+				ec.windowSize,
+			)
+		}
+	}
+	// draw estimate labels after ALL of the connections to ensure proper layering
+	for _, c := range m.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
+		if m.CoeffDisplay != utils.NONE {
+			utils.DrawEstimate(
+				ops,
+				gtx,
+				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
+				m.Font.Face,
+				m.Font.Size,
+				ec.scaleFactor,
+				c.EstPadding,
+				c.EstText,
+				c.EstDim,
+				c.EstWidth,
+			)
+		}
+	}
 }
