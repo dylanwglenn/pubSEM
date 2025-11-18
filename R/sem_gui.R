@@ -21,8 +21,8 @@ sem_gui <- function(fit, layout_name, standardized = FALSE) {
     base_dir <- tools::R_user_dir("pubSEM", which = "data")
     file_path <- file.path(base_dir, "temp.json")
 
-    if (!dir.exists(file.path(base_dir))) {
-        dir.create(file.path(base_dir), recursive = TRUE)
+    if (!dir.exists(base_dir)) {
+        dir.create(base_dir, recursive = TRUE)
     }
 
     jsonlite::write_json(df_fit,
@@ -34,7 +34,7 @@ sem_gui <- function(fit, layout_name, standardized = FALSE) {
         gui_exec_path <- system.file("bin", "sem_gui.exe", package = "pubSEM", mustWork = TRUE)
         # run the GUI executable
         system2(gui_exec_path,
-                args = c(base_dir, layout_name, "edit"),
+                args = c(shQuote(base_dir), layout_name, "edit"),
                 invisible = FALSE #necessary for Windows
         )
     } else {
