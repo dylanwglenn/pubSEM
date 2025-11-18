@@ -1,7 +1,7 @@
 Package: pubSEM
 Type: Package
 Title: Create Publication-Ready Path Diagrams from 'lavaan' Models
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: c(
     person(
       "Dylan", "Glenn",
