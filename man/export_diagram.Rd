@@ -4,7 +4,13 @@
 \alias{export_diagram}
 \title{Export a pubSEM layout to PDF}
 \usage{
-export_diagram(layout_name, filename, directory = getwd())
+export_diagram(
+  fit,
+  layout_name,
+  standardized = FALSE,
+  filename,
+  directory = getwd()
+)
 }
 \arguments{
 \item{layout_name}{a string denoting the pubSEM layout to export}

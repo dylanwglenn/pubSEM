@@ -7,7 +7,9 @@
 #'   exported PDF. Defaults to the current working directory.
 #' @returns nothing
 #' @export
-export_diagram <- function(layout_name, filename, directory = getwd()) {
+export_diagram <- function(fit, layout_name,standardized = FALSE, filename, directory = getwd()) {
+    fit_to_json(fit, standardized)
+
     base_dir <- tools::R_user_dir("pubSEM", which = "data")
     file_path <- file.path(base_dir, paste(layout_name, ".json"))
 
