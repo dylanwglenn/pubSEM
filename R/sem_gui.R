@@ -11,7 +11,7 @@
 #' @param standardized A bool value
 #' @param layout_name A string denoting the name of the pubSEM layout to which
 #'   a layout should be stored. A layout file stores persistent data for
-#'   reproducible diagrams in the current working directoloadry — layout names
+#'   reproducible diagrams in the current working directory — layout names
 #'   should be unique EVEN ACROSS R projects!
 #' @returns nothing
 #' @export
