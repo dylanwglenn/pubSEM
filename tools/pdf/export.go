@@ -85,6 +85,9 @@ func ExportModel(m *model.Model, filePath string) {
 	}
 
 	for _, c := range mAdj.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
 		// convert connection points to PDF coords
 		originPos := utils.LocalPos{
 			X: (c.OriginPos.X + offsetX) * ppRatio,
@@ -112,6 +115,9 @@ func ExportModel(m *model.Model, filePath string) {
 
 	// draw estimate labels after all the connections to ensure proper layering
 	for _, c := range mAdj.Connections {
+		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
 		textWidth := utils.GetTextWidth(c.EstText, m.Font.Faces[0], (m.Font.Size-2)*ppRatio, layout.Context{}) + (c.EstPadding * ppRatio)
 		textPos := utils.LocalPos{
 			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 - textAdj,
