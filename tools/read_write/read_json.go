@@ -187,28 +187,6 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 	return m
 }
 
-func CalculateNodeNetwork(connections []*model.Connection) map[*model.Node][]*model.Node {
-	res := make(map[*model.Node][]*model.Node)
-	for _, c := range connections {
-		if res[c.Origin] == nil {
-			res[c.Origin] = make([]*model.Node, 0)
-			res[c.Origin] = append(res[c.Origin], c.Origin)
-		}
-		if res[c.Destination] == nil {
-			res[c.Destination] = make([]*model.Node, 0)
-			res[c.Destination] = append(res[c.Destination], c.Destination)
-		}
-
-		if c.Destination.Visible {
-			res[c.Origin] = append(res[c.Origin], c.Destination)
-		}
-		if c.Origin.Visible {
-			res[c.Destination] = append(res[c.Destination], c.Origin)
-		}
-	}
-	return res
-}
-
 func forceDirectNodes(m *model.Model) {
 	// see https://i11www.iti.kit.edu/_media/teaching/winter2016/graphvis/graphvis-ws16-v6.pdf
 	var idealSpringLength float64 = 10
