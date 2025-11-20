@@ -112,7 +112,7 @@ func ExportModel(m *model.Model, filePath string) {
 
 	// draw estimate labels after all the connections to ensure proper layering
 	for _, c := range mAdj.Connections {
-		textWidth := utils.GetTextWidth(c.EstText, m.Font.Face, (m.Font.Size-2)*ppRatio, layout.Context{}) + (c.EstPadding * ppRatio)
+		textWidth := utils.GetTextWidth(c.EstText, m.Font.Faces[0], (m.Font.Size-2)*ppRatio, layout.Context{}) + (c.EstPadding * ppRatio)
 		textPos := utils.LocalPos{
 			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 - textAdj,
 			Y: (c.EstPos.Y+offsetY)*ppRatio - ppRatio/2, // assuming that ppRatio is text height

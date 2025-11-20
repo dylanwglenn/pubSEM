@@ -86,7 +86,7 @@ func InitTestModel() *Model {
 
 	m.Font.Size = 16
 	m.Font.Family = "sans"
-	m.Font.Face = utils.LoadSansFontFace()[0]
+	m.Font.Faces = utils.LoadSansFontFace()
 
 	return m
 }

@@ -30,10 +30,15 @@ func CalculateModel(m *Model, gtx layout.Context) {
 			continue
 		}
 
+		fontFace := m.Font.Faces[0]
+		if n.Bold {
+			fontFace = m.Font.Faces[1]
+		}
+
 		n.EdgeConnections = [4][]*Connection{}
 		// define node dimensions
 		if n.TextWidth == 0 {
-			n.TextWidth = utils.GetTextWidth(n.Text, m.Font.Face, m.Font.Size, gtx)
+			n.TextWidth = utils.GetTextWidth(n.Text, fontFace, m.Font.Size, gtx)
 		}
 		// todo: decide whether to snap dimensions to grid as well as position
 		//adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
@@ -172,7 +177,7 @@ func CalculateModel(m *Model, gtx layout.Context) {
 
 		// calculate estimate label width once and then store (the text width calculation is VERY expensive)
 		if c.EstWidth == 0 {
-			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Face, m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding, gtx)
+			c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Faces[0], m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding, gtx)
 		}
 
 		switch {

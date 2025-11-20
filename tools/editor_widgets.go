@@ -54,7 +54,7 @@ func InitWidgets(m *model.Model) ModelWidgets {
 	return w
 }
 
-func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *material.Theme, n *model.Node, pos utils.LocalPos, ec *EditContext) {
+func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *material.Theme, n *model.Node, pos utils.LocalPos, ec *EditContext, fontFaces []font.FontFace, fontSize float32) {
 	nodeWidget := w.nodeWidgets[n]
 
 	globalPos := pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize)
@@ -92,8 +92,11 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 				btn := material.Button(th, &nodeWidget.boldButton, "B")
 				btn.Background = color.NRGBA{R: 100, G: 100, B: 200, A: 255}
 				btn.TextSize = unit.Sp(12)
-				btn.Font.Weight = font.Weight(400)
+				if nodeWidget.isBold {
+					btn.Font.Weight = font.Weight(300)
+				}
 				btn.Inset = layout.Inset{Top: 1, Bottom: 1, Left: 1, Right: 1}
+				btn.CornerRadius = unit.Dp(1)
 				if nodeWidget.isBold {
 					btn.Background = color.NRGBA{R: 100, G: 100, B: 170, A: 255}
 				}
@@ -110,7 +113,7 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 
 			// Text editor takes remaining space
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				editor := material.Editor(th, &nodeWidget.textBox, n.Text)
+				editor := material.Editor(th, &nodeWidget.textBox, n.VarName)
 				editor.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 				if nodeWidget.isBold {
 					editor.Font.Weight = font.Bold
@@ -122,4 +125,24 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 			}),
 		)
 	})
+
+	fontFace := fontFaces[0]
+	if nodeWidget.isBold {
+		fontFace = fontFaces[1]
+	}
+
+	if n.Bold != nodeWidget.isBold {
+		n.Bold = nodeWidget.isBold
+		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
+	}
+
+	newText := nodeWidget.textBox.Text()
+	if n.Text != newText && newText != "" {
+		n.Text = newText
+		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
+	}
+	if newText == "" {
+		n.Text = n.VarName
+		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
+	}
 }

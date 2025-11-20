@@ -131,7 +131,7 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 				case *model.Node:
 					topNodePos := s.Pos.Sub(utils.LocalPos{Y: s.Dim.H / 2})
 					posOffset := topNodePos.Sub(utils.LocalPos{Y: editorVertOffset})
-					widgets.DrawNodeEditor(ops, gtx, th, s, posOffset, ec)
+					widgets.DrawNodeEditor(ops, gtx, th, s, posOffset, ec, m.Font.Faces, m.Font.Size)
 				case *model.Connection:
 				}
 			}
@@ -443,13 +443,17 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			)
 		}
 
+		fontFace := m.Font.Faces[0]
+		if n.Bold {
+			fontFace = m.Font.Faces[1]
+		}
 		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / (1.5 / m.PxPerDp)} // I think 1.5 is a magic number
 		utils.DrawText(
 			ops,
 			gtx,
 			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 			n.Text,
-			m.Font.Face,
+			fontFace,
 			unit.Sp(m.Font.Size),
 			ec.scaleFactor,
 		)
@@ -504,7 +508,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				m.Font.Face,
+				m.Font.Faces[0],
 				m.Font.Size,
 				ec.scaleFactor,
 				c.EstPadding,

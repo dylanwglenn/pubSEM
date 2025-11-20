@@ -165,7 +165,7 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		m.Font = model.FontSettings{
 			Family: "sans",
 			Size:   16,
-			Face:   utils.LoadSansFontFace()[0],
+			Faces:  utils.LoadSansFontFace(),
 		}
 		m.CoeffDisplay = utils.STAR
 	}
