@@ -98,7 +98,7 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 					btn.Font.Weight = font.Weight(300)
 				}
 				btn.Inset = layout.Inset{Top: 1, Bottom: 1, Left: 1, Right: 1}
-				btn.CornerRadius = unit.Dp(1)
+				btn.CornerRadius = unit.Dp(2)
 				if nodeWidget.isBold {
 					btn.Background = color.NRGBA{R: 100, G: 100, B: 170, A: 255}
 				}
