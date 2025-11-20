@@ -154,6 +154,8 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 					c.AlongLineProp = cExisting.AlongLineProp
 					c.VarianceAngle = cExisting.VarianceAngle
 					c.Curvature = cExisting.Curvature
+					c.OriginPos = cExisting.OriginPos
+					c.DestinationPos = cExisting.DestinationPos
 				}
 			}
 		}
