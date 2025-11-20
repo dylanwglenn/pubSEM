@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	EDITOR_WIDTH  = 175
-	EDITOR_HEIGHT = 25
+	EDITOR_WIDTH  = 200
+	EDITOR_HEIGHT = 30
 )
 
 type ModelWidgets struct {
@@ -58,32 +58,27 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 	nodeWidget := w.nodeWidgets[n]
 
 	globalPos := pos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize)
-	dim := utils.LocalDim{W: EDITOR_WIDTH, H: EDITOR_HEIGHT}
-	globalDim := dim.ToGlobal(ec.scaleFactor)
+	dim := utils.GlobalDim{W: EDITOR_WIDTH, H: EDITOR_HEIGHT}
 
 	// Apply scale transform
-	anchorPoint := f32.Point{
-		float32(globalPos.X),
-		float32(globalPos.Y + globalDim.H/2),
-	}
+	anchorPoint := globalPos.ToF32()
 	defer op.Affine(f32.Affine2D{}.Scale(anchorPoint, f32.Pt(ec.scaleFactor, ec.scaleFactor))).Push(ops).Pop()
-	// Stack to position the toolbar at the specified location
-	defer op.Offset(globalPos.SubDim(globalDim.Div(2)).ToImagePnt()).Push(ops).Pop()
-
-	toolbarGtx := gtx
-	toolbarGtx.Constraints = layout.Exact(image.Pt(globalDim.W, globalDim.H))
+	defer op.Offset(globalPos.SubDim(dim.Div(2)).ToImagePnt()).Push(ops).Pop()
 
 	// Draw background
-	radius := 2 * ec.scaleFactor
+	radius := 2
 	utils.DrawRoundedRect(ops,
-		utils.GlobalPos{X: globalDim.W / 2, Y: globalDim.H / 2},
-		globalDim,
-		int(radius),
+		utils.GlobalPos{X: EDITOR_WIDTH / 2, Y: EDITOR_HEIGHT / 2},
+		dim,
+		radius,
 		color.NRGBA{R: 255, G: 255, B: 255, A: 255},
 		2)
 
+	toolbarGtx := gtx
+	toolbarGtx.Constraints = layout.Exact(image.Pt(dim.W, dim.H))
+
 	// Layout contents
-	layout.UniformInset(unit.Dp(10/ec.scaleFactor)).Layout(toolbarGtx, func(gtx layout.Context) layout.Dimensions {
+	layout.UniformInset(unit.Dp(2.5)).Layout(toolbarGtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{
 			Axis:      layout.Horizontal,
 			Alignment: layout.Middle,
@@ -95,14 +90,16 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 				}
 
 				btn := material.Button(th, &nodeWidget.boldButton, "B")
-				btn.Background = color.NRGBA{R: 70, G: 130, B: 180, A: 255}
-				btn.TextSize = unit.Sp(10)
+				btn.Background = color.NRGBA{R: 100, G: 100, B: 200, A: 255}
+				btn.TextSize = unit.Sp(12)
+				btn.Font.Weight = font.Weight(400)
+				btn.Inset = layout.Inset{Top: 1, Bottom: 1, Left: 1, Right: 1}
 				if nodeWidget.isBold {
-					btn.Background = color.NRGBA{R: 100, G: 160, B: 210, A: 255}
+					btn.Background = color.NRGBA{R: 100, G: 100, B: 170, A: 255}
 				}
 
 				// Make button square by constraining to fixed size
-				buttonSize := float32(EDITOR_HEIGHT) * ec.scaleFactor
+				buttonSize := float32(EDITOR_HEIGHT - 5)
 				gtx.Constraints = layout.Exact(image.Pt(int(buttonSize), int(buttonSize)))
 
 				return btn.Layout(gtx)
@@ -120,7 +117,7 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 				} else {
 					editor.Font.Weight = font.Normal
 				}
-				editor.TextSize = unit.Sp(10 * ec.scaleFactor)
+				editor.TextSize = unit.Sp(16)
 				return editor.Layout(gtx)
 			}),
 		)
