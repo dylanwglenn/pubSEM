@@ -144,13 +144,11 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
 	}
 
-	if n.Text != n.VarName && newText == "" {
-		nodeWidget.textBox.SetText(n.Text)
-		newText = n.Text
-	}
-
-	if newText == "" {
+	if newText == "" && len(n.Text) == 1 {
 		n.Text = n.VarName
 		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
+	} else if n.Text != n.VarName && newText == "" { // case when loading a model that already has edited text
+		nodeWidget.textBox.SetText(n.Text)
+		newText = n.Text
 	}
 }
