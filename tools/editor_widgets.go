@@ -26,8 +26,8 @@ type ModelWidgets struct {
 }
 
 type NodeWidget struct {
-	textBox    widget.Editor
-	boldButton widget.Clickable
+	textBox    *widget.Editor
+	boldButton *widget.Clickable
 	isBold     bool
 }
 
@@ -47,6 +47,8 @@ func InitWidgets(m *model.Model) ModelWidgets {
 
 	for _, n := range m.Nodes {
 		nw := new(NodeWidget)
+		nw.textBox = new(widget.Editor)
+		nw.boldButton = new(widget.Clickable)
 		nw.textBox.SingleLine = true
 		w.nodeWidgets[n] = nw
 	}
@@ -89,7 +91,7 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 					nodeWidget.isBold = !nodeWidget.isBold
 				}
 
-				btn := material.Button(th, &nodeWidget.boldButton, "B")
+				btn := material.Button(th, nodeWidget.boldButton, "B")
 				btn.Background = color.NRGBA{R: 100, G: 100, B: 200, A: 255}
 				btn.TextSize = unit.Sp(12)
 				if nodeWidget.isBold {
@@ -113,14 +115,14 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 
 			// Text editor takes remaining space
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-				editor := material.Editor(th, &nodeWidget.textBox, n.VarName)
+				editor := material.Editor(th, nodeWidget.textBox, n.Text)
 				editor.Color = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 				if nodeWidget.isBold {
 					editor.Font.Weight = font.Bold
 				} else {
 					editor.Font.Weight = font.Normal
 				}
-				editor.TextSize = unit.Sp(16)
+				editor.TextSize = unit.Sp(14)
 				return editor.Layout(gtx)
 			}),
 		)
@@ -141,6 +143,12 @@ func (w ModelWidgets) DrawNodeEditor(ops *op.Ops, gtx layout.Context, th *materi
 		n.Text = newText
 		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)
 	}
+
+	if n.Text != n.VarName && newText == "" {
+		nodeWidget.textBox.SetText(n.Text)
+		newText = n.Text
+	}
+
 	if newText == "" {
 		n.Text = n.VarName
 		n.TextWidth = utils.GetTextWidth(n.Text, fontFace, fontSize, gtx)

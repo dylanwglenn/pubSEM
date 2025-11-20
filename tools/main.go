@@ -318,8 +318,10 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 						if ec.editingSelection != c {
 							ec.editingSelection = c
 							c.Curvature *= -1 // change curvature on right click
+							return
 						} else {
 							ec.editingSelection = nil
+							return
 						}
 					}
 				}
@@ -335,20 +337,28 @@ func RightClick(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext
 						if utils.WithinRect(evt.Position.Round(), rect) {
 							if ec.editingSelection != n {
 								ec.editingSelection = n
+								gtx.Execute(key.FocusCmd{Tag: widgets.nodeWidgets[n].textBox})
+								return
 							} else {
 								ec.editingSelection = nil
+								return
 							}
 						}
 					case model.LATENT:
 						if utils.WithinEllipse(evt.Position.Round(), rect) {
 							if ec.editingSelection != n {
 								ec.editingSelection = n
+								gtx.Execute(key.FocusCmd{Tag: widgets.nodeWidgets[n].textBox})
+								return
 							} else {
 								ec.editingSelection = nil
+								return
 							}
 						}
 					}
 				}
+
+				ec.editingSelection = nil
 
 			default:
 			}
