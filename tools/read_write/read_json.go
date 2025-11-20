@@ -87,8 +87,14 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		// set var names (init to be same as text for now)
 		lhs.VarName = row.Lhs
 		rhs.VarName = row.Rhs
-		lhs.Text = row.Lhs
-		rhs.Text = row.Rhs
+
+		if lhs.Text == "" {
+			lhs.Text = row.Lhs
+		}
+
+		if rhs.Text == "" {
+			rhs.Text = row.Rhs
+		}
 
 		// Set estimate values
 		c.Est = row.Est
@@ -140,7 +146,6 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		//assign nodes to map
 		varMap[row.Lhs] = lhs
 		varMap[row.Rhs] = rhs
-		// assign connection to array
 
 		// check of connection already exists. Match label placements
 		if mExisting != nil {
