@@ -177,7 +177,6 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 
 	m.Connections = connections
 	m.Nodes = utils.MapValsToSlice(varMap)
-	m.Network = CalculateNodeNetwork(connections)
 
 	if !loadedProj {
 		forceDirectNodes(m)

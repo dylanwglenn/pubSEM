@@ -73,7 +73,6 @@ type FontSettings struct {
 type Model struct {
 	Nodes         []*Node                  `json:"nodes,omitempty"`
 	Connections   []*Connection            `json:"connections,omitempty"`
-	Network       map[*Node][]*Node        `json:"-"`
 	Font          FontSettings             `json:"font"`
 	CoeffDisplay  utils.CoefficientDisplay `json:"coeff_display,omitempty"`
 	ViewGenerated bool                     `json:"view_generated,omitempty"`
