@@ -6,13 +6,17 @@
 \usage{
 export_diagram(
   fit,
-  layout_name,
   standardized = FALSE,
+  layout_name,
   filename,
   directory = getwd()
 )
 }
 \arguments{
+\item{fit}{A lavaan object}
+
+\item{standardized}{A bool value}
+
 \item{layout_name}{a string denoting the pubSEM layout to export}
 
 \item{filename}{a string specifying the name of the exported PDF}

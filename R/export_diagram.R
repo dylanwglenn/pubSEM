@@ -1,13 +1,15 @@
 
 #' Export a pubSEM layout to PDF
 #'
+#' @param fit A lavaan object
+#' @param standardized A bool value
 #' @param layout_name a string denoting the pubSEM layout to export
 #' @param filename a string specifying the name of the exported PDF
 #' @param directory a string specifying the directory in which to save the
 #'   exported PDF. Defaults to the current working directory.
 #' @returns nothing
 #' @export
-export_diagram <- function(fit, layout_name,standardized = FALSE, filename, directory = getwd()) {
+export_diagram <- function(fit, standardized = FALSE, layout_name, filename, directory = getwd()) {
     fit_to_json(fit, standardized)
 
     base_dir <- tools::R_user_dir("pubSEM", which = "data")
