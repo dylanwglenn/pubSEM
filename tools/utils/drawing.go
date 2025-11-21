@@ -283,14 +283,14 @@ func GetTextWidth(txt string, style font.FontFace, size float32, gtx layout.Cont
 	return float32(width)/64.0 + float32(spaceRunes*spaceWidth) // Convert from fixed.Int26_6 to float32 and add space characters
 }
 
-func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32, scaleFactor float32,
-	padding float32, estText string, dim LocalDim, textWidth float32) {
+func DrawEstimate(ops *op.Ops, gtx layout.Context, pos GlobalPos, fontStyle font.FontFace, fontSize float32,
+	scaleFactor float32, padding float32, estText string, dim LocalDim, textWidth float32) {
 
 	DrawRect(ops, pos, dim.ToGlobal(scaleFactor), color.NRGBA{255, 255, 255, 255}, 0)
 
 	// draw text
-	textOffset := LocalDim{W: textWidth/2.0 - padding, H: fontSize / 1.5}
-	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize-2), scaleFactor)
+	textOffset := LocalDim{W: textWidth / 2.0, H: fontSize / 1.5}
+	DrawText(ops, gtx, pos.SubDim(textOffset.ToGlobal(scaleFactor)), estText, fontStyle, unit.Sp(fontSize), scaleFactor)
 }
 
 func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle CoefficientDisplay, est, pVal float64, ci [2]float64, precision int, padding float32, gtx layout.Context) (string, LocalDim, float32) {
@@ -319,7 +319,7 @@ func CalculateEstimate(fontStyle font.FontFace, fontSize float32, displayStyle C
 
 	// draw the background rectangle
 	textWidth := GetTextWidth(estText, fontStyle, fontSize, gtx)
-	adjWidth := textWidth + padding*3.0
+	adjWidth := textWidth + padding*2.0
 	height := fontSize * 1.5 // todo: find a better way to determine height of text
 	return estText, LocalDim{W: adjWidth, H: height}, textWidth
 }

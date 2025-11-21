@@ -519,7 +519,7 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 				m.Font.Faces[0],
-				m.Font.Size,
+				m.Font.Size-2,
 				ec.scaleFactor,
 				c.EstPadding,
 				c.EstText,

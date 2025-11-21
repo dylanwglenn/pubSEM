@@ -118,9 +118,9 @@ func ExportModel(m *model.Model, filePath string) {
 		if !c.UserDefined && !m.ViewGenerated {
 			continue
 		}
-		textWidth := utils.GetTextWidth(c.EstText, m.Font.Faces[0], (m.Font.Size-2)*ppRatio, layout.Context{}) + (c.EstPadding * ppRatio)
+		textWidth := utils.GetTextWidth(c.EstText, m.Font.Faces[0], (m.Font.Size-2)*ppRatio, layout.Context{})
 		textPos := utils.LocalPos{
-			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 - textAdj,
+			X: (c.EstPos.X+offsetX)*ppRatio - textWidth/2 + (c.EstPadding * ppRatio) - textAdj,
 			Y: (c.EstPos.Y+offsetY)*ppRatio - ppRatio/2, // assuming that ppRatio is text height
 		}
 

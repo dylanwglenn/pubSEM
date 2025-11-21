@@ -14,7 +14,7 @@ import (
 
 const (
 	roundness     = .3
-	estPadding    = 2.5
+	estPadding    = 2
 	propAlongLine = .5
 )
 
