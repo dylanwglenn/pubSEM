@@ -171,7 +171,7 @@ func DrawArc(ops *op.Ops, posA, posB, refPoint GlobalPos, radius float32, offset
 	angleA := GetAngle(circleCenter, posA.ToF32())
 	angleB := GetAngle(circleCenter, posB.ToF32())
 
-	offsetAngle *= .9 // shorted the offset angle a bit
+	offsetAngle *= .9 // shorten the offset angle a bit
 
 	truncatedPosB := MoveAlongAngle(circleCenter, NormalizeAngle(angleB-offsetAngle), radius)
 

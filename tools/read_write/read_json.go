@@ -170,9 +170,8 @@ func ModelFromJSON(dir, projectName string) *model.Model {
 		m.PxPerDp = mExisting.PxPerDp
 	} else {
 		m.Font = model.FontSettings{
-			Family: "sans",
-			Size:   16,
-			Faces:  utils.LoadSansFontFace(),
+			Size:  16,
+			Faces: utils.LoadAllFontFaces(),
 		}
 		m.CoeffDisplay = utils.STAR
 	}

@@ -161,14 +161,18 @@ func DrawArrowArc(pdf *gofpdf.Fpdf, posA, posB, refPoint utils.LocalPos, radius 
 	DrawArrowHead(pdf, utils.ToLocalPos(arrowPosB), angleTangentB, float32(arrowSize), col)
 }
 
-func DrawText(pdf *gofpdf.Fpdf, pos utils.LocalPos, txt string, fontFamily string, bold bool, size, ppRatio float32) {
+func DrawText(pdf *gofpdf.Fpdf, pos utils.LocalPos, txt string, isSerif bool, bold bool, size, ppRatio float32) {
 	styleStr := ""
 	if bold {
 		styleStr = "B"
 	}
 
 	// Set font
-	pdf.SetFont(fontFamily, styleStr, float64(size*ppRatio)) // convert from Sp to PDF points
+	familyStr := "sans"
+	if isSerif {
+		familyStr = "serif"
+	}
+	pdf.SetFont(familyStr, styleStr, float64(size*ppRatio)) // convert from Sp to PDF points
 
 	// Set text color to black
 	pdf.SetTextColor(0, 0, 0)

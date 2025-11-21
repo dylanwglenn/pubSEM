@@ -32,13 +32,7 @@ func LoadProject(path string) (*model.Model, error) {
 		panic(err)
 	}
 
-	// todo: consider why this needs to be here. How would I handle bold fonts?
-	switch m.Font.Family {
-	case "sans":
-		m.Font.Faces = utils.LoadSansFontFace()
-	case "serif":
-		m.Font.Faces = utils.LoadSerifFontFace()
-	}
+	m.Font.Faces = utils.LoadAllFontFaces()
 
 	return m, nil
 }

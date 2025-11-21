@@ -131,10 +131,13 @@ func loop(w *app.Window, th *material.Theme, m *model.Model, ec *EditContext, wi
 				case *model.Node:
 					topNodePos := s.Pos.Sub(utils.LocalPos{Y: s.Dim.H / 2})
 					posOffset := topNodePos.Sub(utils.LocalPos{Y: editorVertOffset})
-					widgets.DrawNodeEditor(ops, gtx, th, s, posOffset, ec, m.Font.Faces, m.Font.Size)
+					widgets.DrawNodeEditor(ops, gtx, th, s, posOffset, ec, m.Font.Faces, m.Font.IsSerif, m.Font.Size)
 				case *model.Connection:
 				}
 			}
+
+			// main toolbar
+			widgets.DrawToolbar(ops, gtx, th, m)
 
 			// complete the frame event
 			e.Frame(gtx.Ops)
@@ -453,17 +456,13 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			)
 		}
 
-		fontFace := m.Font.Faces[0]
-		if n.Bold {
-			fontFace = m.Font.Faces[1]
-		}
 		textOffset := utils.LocalDim{W: n.Dim.W/2.0 - n.Padding, H: m.Font.Size / (1.5 / m.PxPerDp)} // I think 1.5 is a magic number
 		utils.DrawText(
 			ops,
 			gtx,
 			n.Pos.SubDim(textOffset).ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
 			n.Text,
-			fontFace,
+			utils.GetFontFace(m.Font.IsSerif, n.Bold, m.Font.Faces),
 			unit.Sp(m.Font.Size),
 			ec.scaleFactor,
 		)
@@ -471,6 +470,10 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 
 	for _, c := range m.Connections {
 		if !c.UserDefined && !m.ViewGenerated {
+			continue
+		}
+
+		if !c.Origin.Visible || !c.Destination.Visible {
 			continue
 		}
 
@@ -513,12 +516,16 @@ func DrawModel(ops *op.Ops, gtx layout.Context, m *model.Model, ec *EditContext)
 			continue
 		}
 
+		if !c.Origin.Visible || !c.Destination.Visible {
+			continue
+		}
+
 		if m.CoeffDisplay != utils.NONE {
 			utils.DrawEstimate(
 				ops,
 				gtx,
 				c.EstPos.ToGlobal(ec.scaleFactor, ec.viewportCenter, ec.windowSize),
-				m.Font.Faces[0],
+				utils.GetFontFace(m.Font.IsSerif, false, m.Font.Faces),
 				m.Font.Size-2,
 				ec.scaleFactor,
 				c.EstPadding,

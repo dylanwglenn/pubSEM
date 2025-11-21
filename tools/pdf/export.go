@@ -81,7 +81,7 @@ func ExportModel(m *model.Model, filePath string) {
 			Y: adjPos.Y + adjDim.H/2,
 		}
 
-		DrawText(pdf, textPos, n.Text, m.Font.Family, n.Bold, m.Font.Size, ppRatio)
+		DrawText(pdf, textPos, n.Text, m.Font.IsSerif, n.Bold, m.Font.Size, ppRatio)
 	}
 
 	for _, c := range mAdj.Connections {
@@ -132,7 +132,7 @@ func ExportModel(m *model.Model, filePath string) {
 		rectDim := c.EstDim.Div(m.PxPerDp).Mul(ppRatio)
 
 		DrawRect(pdf, rectPos, rectDim, color.NRGBA{255, 255, 255, 255}, 0)
-		DrawText(pdf, textPos, c.EstText, m.Font.Family, false, m.Font.Size-2, ppRatio)
+		DrawText(pdf, textPos, c.EstText, m.Font.IsSerif, false, m.Font.Size-2, ppRatio)
 	}
 
 	// export

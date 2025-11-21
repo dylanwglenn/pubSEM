@@ -30,15 +30,10 @@ func CalculateModel(m *Model, gtx layout.Context) {
 			continue
 		}
 
-		fontFace := m.Font.Faces[0]
-		if n.Bold {
-			fontFace = m.Font.Faces[1]
-		}
-
 		n.EdgeConnections = [4][]*Connection{}
 		// define node dimensions
 		if n.TextWidth == 0 {
-			n.TextWidth = utils.GetTextWidth(n.Text, fontFace, m.Font.Size, gtx)
+			n.TextWidth = utils.GetTextWidth(n.Text, utils.GetFontFace(m.Font.IsSerif, n.Bold, m.Font.Faces), m.Font.Size, gtx)
 		}
 		// todo: decide whether to snap dimensions to grid as well as position
 		//adjWidth := utils.SnapValue(textWidth+targetPadding*2, ec.snapGridSize)
@@ -398,4 +393,14 @@ func checkIntersection(originPos, destPos utils.LocalPos, nodes, exclusion []*No
 		}
 	}
 	return false
+}
+
+func RecalcTextWidths(m *Model, gtx layout.Context) {
+	for _, n := range m.Nodes {
+		n.TextWidth = utils.GetTextWidth(n.Text, utils.GetFontFace(m.Font.IsSerif, n.Bold, m.Font.Faces), m.Font.Size, gtx)
+	}
+
+	for _, c := range m.Connections {
+		c.EstText, c.EstDim, c.EstWidth = utils.CalculateEstimate(m.Font.Faces[0], m.Font.Size-2, m.CoeffDisplay, c.Est, c.PValue, c.CI, 2, c.EstPadding, gtx)
+	}
 }

@@ -65,9 +65,9 @@ type Connection struct {
 }
 
 type FontSettings struct {
-	Family string          `json:"family,omitempty"`
-	Size   float32         `json:"size,omitempty"`
-	Faces  []font.FontFace `json:"-"`
+	IsSerif bool            `json:"IsSerif,omitempty"`
+	Size    float32         `json:"size,omitempty"`
+	Faces   []font.FontFace `json:"-"`
 }
 
 type Model struct {

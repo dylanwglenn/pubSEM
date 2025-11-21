@@ -38,6 +38,10 @@ func LoadSerifFontFace() []text.FontFace {
 	return []text.FontFace{normalFontFace, boldFontFace}
 }
 
+func LoadAllFontFaces() []text.FontFace {
+	return append(LoadSansFontFace(), LoadSerifFontFace()...)
+}
+
 func LoadPdfFonts(pdf *gofpdf.Fpdf) {
 	// Add sans regular
 	pdf.AddFont("sans", "", "NotoSans-Regular.json")
@@ -48,4 +52,18 @@ func LoadPdfFonts(pdf *gofpdf.Fpdf) {
 	pdf.AddFont("serif", "", "NotoSerif-Regular.json")
 	// Add serif bold
 	pdf.AddFont("serif", "B", "NotoSerif-Bold.json")
+}
+
+func GetFontFace(isSerif, isBold bool, faces []text.FontFace) text.FontFace {
+	switch {
+	case isSerif && isBold:
+		return faces[3]
+	case isSerif && !isBold:
+		return faces[2]
+	case !isSerif && isBold:
+		return faces[1]
+	case !isSerif && !isBold:
+		return faces[0]
+	}
+	return faces[0]
 }
